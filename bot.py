@@ -41,7 +41,8 @@ async def quote(interactions):
     global last_quote_time
     if last_quote_time.day == datetime.today().day:
         await interactions.response.send_message(
-            "Today's message has been already sent", ephemeral=True
+            file=discord.File('text_image.png', 'Mądrość dnia.png')
+            # "Today's message has been already sent", ephemeral=True
         )
         return
 
@@ -54,7 +55,7 @@ async def quote(interactions):
     await interactions.response.send_message(
         file=discord.File('text_image.png', 'Mądrość dnia.png')
     )
-    #last_quote_time = datetime.utcnow()
+    last_quote_time = datetime.utcnow()
 
 
 @bot.tree.command(name='explain', description='Dodatkowe informacje \"lore\" ostatniej wypowiedzi')
