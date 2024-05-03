@@ -1,0 +1,40 @@
+{
+  "quotes": [
+    {
+      "quote": "Idioto gówniana",
+      "author": "Oliwer",
+      "date": "≈2014",
+      "explanation": "Jeden z pierwszych wulgaryzmów stworzonych przez Oliwera"
+    },
+    {
+      "quote": "Słabo trwały helikopter",
+      "author": "Oliwer",
+      "date": "October 2022",
+      "explanation": "Helikopter spadł po jednym uderzeniu rakiety"
+    },
+    {
+      "quote": "Druga w kolejności jako droga",
+      "author": "Oliwer",
+      "date": "April 2023",
+      "explanation": "Druga najdroższa np. \"Osełka (masło) jest druga w kolejności jako droga\""
+    },
+    {
+      "quote": "Lubię krótko, bo jest szybko",
+      "author": "Oliwer",
+      "date": "≈2023",
+      "explanation": "Oliwer lubi krótkie mecze, bo się szybko kończą"
+    },
+    {
+      "quote": "Jak ktoś biegał, to stał",
+      "author": "Oliwer",
+      "date": "≈2023",
+      "explanation": "Oliwer lubi krótkie mecze bo się szybko kończą"
+    }
+  ],
+  "authors": {
+    "Oliwer": {
+      "author": "Oliwer",
+      "signature": "\uD83C\uDF41Oliwer\uD83C\uDF41"
+    }
+  }
+}
