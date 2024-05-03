@@ -27,14 +27,94 @@
     {
       "quote": "Jak ktoś biegał, to stał",
       "author": "Oliwer",
-      "date": "≈2023",
-      "explanation": "Oliwer lubi krótkie mecze bo się szybko kończą"
+      "date": "2024",
+      "explanation": "----"
+    },
+    {
+      "quote": "Jak to się mówi, trzeba nasrać do bidetu",
+      "author": "Oliwer",
+      "date": "2024",
+      "explanation": "----"
+    },
+    {
+      "quote": "Tu nie ma brzegu. Tu jest morze",
+      "author": "Robert",
+      "date": "≈2024",
+      "explanation": "Powiedział stojąc na brzegu"
+    },
+    {
+      "quote": "Twoja morda jest tak brzydka, że twoja dupa nie istnieje",
+      "author": "Oliwer",
+      "date": "2024",
+      "explanation": "Podczas egzekucji w for Honor Jormungand wbija młot w głowę co było podstawą do utworzenia tego zdania"
+    },
+    {
+      "quote": "Zrobię Ci takiego pranka że wyprowadzisz się do Wietnamu",
+      "author": "Oliwer",
+      "date": "2024",
+      "explanation": "---"
+    },
+    {
+      "quote": "Ona jest głupia psychicznie tak",
+      "author": "Janek",
+      "date": "2024",
+      "explanation": "Reakcja Janka na głupi ruch przeciwnego ADC w lolu"
+    },
+    {
+      "quote": "Aktywowała się ta ostrość",
+      "author": "Oliwer",
+      "date": "2024",
+      "explanation": "Ostre danie dopiero po chwili zaczęło piec"
+    },
+    {
+      "quote": "Chłop co zrobił film godzinę",
+      "author": "Oliwer",
+      "date": "2024",
+      "explanation": "Pewien youtuber nagrał film trwający godzinę"
+    },
+    {
+      "quote": "Tam gdzie największy głos będzie, będzie grill",
+      "author": "Oliwer",
+      "date": "April 2024",
+      "explanation": "Powstanie ankieta z datami i data z największą ilością głosów zostanie wybrana"
+    },
+    {
+      "quote": "X zachowuje się jak baba kupuje pierdołki",
+      "author": "Oliwer",
+      "date": "April 2024",
+      "explanation": "W opinii Oliwera zamiast jak chłop kupić parę rzeczy w sklepie wyszedł z całym naręczem drobiazgów"
+    },
+    {
+      "quote": "Tomy Hilton",
+      "author": "Oliwer",
+      "date": "????",
+      "explanation": "Chodziło o markę Tommy Hilfiger"
+    },
+    {
+      "quote": "Dla mnie codziennie jest dzień",
+      "author": "Oliwer",
+      "date": "2024",
+      "explanation": "Każdego dnia jest dzień więc nic nie stoi na przeszkodzie by się spotkać"
+    },
+    {
+      "quote": "Zesrałem się, trafiłbyś?",
+      "author": "Oliwer",
+      "date": "≈2024",
+      "explanation": "-----"
     }
   ],
   "authors": {
     "Oliwer": {
       "author": "Oliwer",
       "signature": "\uD83C\uDF41Oliwer\uD83C\uDF41"
+    },
+    "Robert": {
+      "author": "Rober",
+      "signature": "\uD83C\uDF8BRobert\uD83C\uDF8B"
+    },
+    "Janek": {
+      "author": "Janek",
+      "signature": "\uD83E\uDD8DJanek\uD83E\uDD8D"
     }
   }
 }
