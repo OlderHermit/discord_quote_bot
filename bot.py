@@ -1,14 +1,17 @@
 import asyncio
 import datetime as datetime
 import json
+import math
 from datetime import datetime, timedelta
 
 import discord
+from discord import Member
 from discord.ext import commands
 
 import quote_to_image
 
-bot_token = 'MTIyNjA5NzEzNDY3NjM0ODk1OQ.GCxcgb.EHZgupFdoiqxKf-AZzIbO7nwvYZWrsdHWwKBOc'
+# bot_token = 'MTIyNjA5NzEzNDY3NjM0ODk1OQ.GCxcgb.EHZgupFdoiqxKf-AZzIbO7nwvYZWrsdHWwKBOc'
+bot_token = 'Nzc0NTczMDc0MTEyNzA4NjQ4.Gryj_9.sW0-C0WQ5AapulAEC0HM1HU__KlVNgdM9W41es'  # test one
 allowed_text_channels = ['tests', 'uwu']
 last_quote_time = datetime.utcnow() - timedelta(days=2)
 used_quotes_buffer = []
@@ -69,6 +72,43 @@ async def explain(interactions):
     await interactions.response.send_message(
         data['quotes'][used_quotes_buffer[-1]]['explanation'], ephemeral=True
     )
+
+
+@bot.event
+async def on_member_update(before: Member, after: Member):
+    role_id = 1236360986970161283  # 1225828166497730741
+    channel_id_to_shame = 1226101153129955382
+
+    if before.get_role(role_id) is None:
+        if after.get_role(role_id) is not None:
+            with open("punishments.json", mode='r+', encoding='UTF-8') as file:
+                data = json.load(file)
+                if data['sentenced'].get(f'{after.id}') is None:
+                    data['sentenced'].update({
+                        f'{after.id}': {
+                            'name': f'{after.name}',
+                            'time': f'{(datetime.utcnow() + timedelta(seconds=5)).timestamp()}'
+                        }
+                    })
+                    file.seek(0)
+                    json.dump(data, file, indent=4)
+
+    elif before.get_role(role_id) is not None:
+        if after.get_role(role_id) is None:
+            with open("punishments.json", mode='r+', encoding='UTF-8') as file:
+                data = json.load(file)
+                if data['sentenced'].get(f'{after.id}') is not None and float(data['sentenced'].get(f'{after.id}')['time']) < datetime.utcnow().timestamp():
+                    data['sentenced'].pop(f'{after.id}')
+                    file.seek(0)
+                    file.truncate()
+                    json.dump(data, file, indent=4)
+                else:
+                    time_difference = (datetime.now() - datetime.utcnow()).total_seconds()
+                    await after.add_roles(before.get_role(role_id))
+                    await after.guild.get_channel(channel_id_to_shame).send(
+                        f"Użytkownik {after.name} próbował usunąć karną rolę {after.get_role(role_id).name} SHAME ON HIM pozostały czas kary: <t:{math.ceil((float(data['sentenced'][f'{after.id}']['time'])) + time_difference)}:R>", suppress_embeds=True
+                        #timedelta(seconds=math.ceil((float(data['sentenced'][f'{after.id}']['time'])) - datetime.utcnow().timestamp()))
+                    )
 
 
 bot.run(bot_token)
