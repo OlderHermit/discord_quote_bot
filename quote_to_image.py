@@ -20,15 +20,17 @@ def split_to_size(text: str, maxsize: int, check_font: ImageFont):
     for c in text.split(' '):
         if combined_size + check_size(c, check_font) > maxsize:
             result.append(center(line, maxsize, check_font))
-            if longest_size < combined_size: longest_size = combined_size
+            if longest_size < combined_size:
+                longest_size = combined_size
             combined_size = check_size(c, check_font) + space_width
             line = c + ' '
         else:
             combined_size += check_size(c, check_font) + space_width
             line += c + ' '
-    if longest_size < combined_size: longest_size = combined_size
+    if longest_size < combined_size:
+        longest_size = combined_size
     result.append(center(line, maxsize, check_font))
-    result.append(center(generate_separator(maxsize, longest_size, check_font), maxsize, check_font))
+    result.append(center(generate_separator(longest_size, check_font), maxsize, check_font))
     return result
 
 
@@ -50,13 +52,13 @@ def split_emoji(text: str):
     return result
 
 
-def generate_separator(maxsize: int, longest_size: int, check_font: ImageFont):
+def generate_separator(longest_size: int, check_font: ImageFont):
     sep_width = check_size('-', check_font)
     seps = math.ceil(longest_size / sep_width)+2
     return '-'*seps
 
 
-def generate_image(not_allowed: {int} = {}):
+def generate_image():
     width = 600
     text_position = (50, 50)
     text_color = (255, 255, 255)
@@ -67,12 +69,17 @@ def generate_image(not_allowed: {int} = {}):
     ]
 
     data = json.load(open("quotes.json", encoding='UTF-8'))
+    conf_file = open("config.json", mode='r+', encoding='UTF-8')
+    config = json.load(conf_file)
 
     picks = list(range(0, len(data['quotes']), 1))
-    for e in sorted(not_allowed, reverse=True):
-        del picks[e]
+    print(config['used_quotes'])
+    print(len(config['used_quotes']))
+    for e in sorted(config['used_quotes'].keys(), reverse=True):
+        del picks[int(e)]
     if len(picks) == 0:
-        raise IndexError("No more quotes allowed buffer too large or never cleared")
+        config['used_quotes'].clear()
+        picks = list(range(0, len(data['quotes']), 1))
 
     index = random.choice(picks)
     quote = data['quotes'][index]
@@ -96,4 +103,6 @@ def generate_image(not_allowed: {int} = {}):
             x += char_width
 
     image.save("text_image.png")
-    return index
+    config['used_quotes'].update({f"{index}": {"quote": f"{quote['quote']}"}})
+    conf_file.seek(0)
+    json.dump(config, conf_file, indent=4)

@@ -10,7 +10,7 @@ from discord.ext import commands
 
 import quote_to_image
 
-bot_token = 'redacted'  # test one
+bot_token = 'redacted'
 allowed_text_channels = ['tests', 'uwu']
 last_quote_time = datetime.utcnow() - timedelta(days=2)
 used_quotes_buffer = []
@@ -48,12 +48,7 @@ async def quote(interactions):
         )
         return
 
-    try:
-        used_quotes_buffer.append(quote_to_image.generate_image(used_quotes_buffer))
-    except IndexError:
-        used_quotes_buffer.clear()
-        used_quotes_buffer.append(quote_to_image.generate_image(used_quotes_buffer))
-
+    quote_to_image.generate_image()
     await interactions.response.send_message(
         file=discord.File('text_image.png', 'Mądrość dnia.png')
     )
@@ -101,11 +96,19 @@ async def on_member_update(before: Member, after: Member):
                     file.seek(0)
                     file.truncate()
                     json.dump(data, file, indent=4)
+                    await after.guild.get_channel(channel_id_to_shame).send(
+                        f"```ansi\n"
+                        f"Użytkownik [0;33m{before.name}[0m został oczyszczony z karnej roli [0;36m{before.get_role(role_id).name}\n"
+                        f"```"
+                    )
                 else:
                     time_difference = (datetime.now() - datetime.utcnow()).total_seconds()
                     await after.add_roles(before.get_role(role_id))
                     await after.guild.get_channel(channel_id_to_shame).send(
-                        f"Użytkownik {after.name} próbował usunąć karną rolę {after.get_role(role_id).name} SHAME ON HIM pozostały czas kary: <t:{math.ceil((float(data['sentenced'][f'{after.id}']['time'])) + time_difference)}:R>", suppress_embeds=True
+                        f"```ansi\n"
+                        f"Użytkownik [0;33m{after.name}[0m próbował usunąć karną rolę [0;36m{after.get_role(role_id).name} [1;36mSHAME ON HIM [0mpozostały czas kary: [1;32m{timedelta(seconds=math.ceil((float(data['sentenced'][f'{after.id}']['time'])) - datetime.utcnow().timestamp()))}\n"
+                        f"```"
+                        #<t:{math.ceil((float(data['sentenced'][f'{after.id}']['time'])) + time_difference)}:R>
                         #timedelta(seconds=math.ceil((float(data['sentenced'][f'{after.id}']['time'])) - datetime.utcnow().timestamp()))
                     )
 
