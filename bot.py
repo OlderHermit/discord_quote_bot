@@ -63,7 +63,7 @@ async def explain(interactions):
             "No quote response to send", ephemeral=True
         )
         return
-    data = json.load(open("quotes.json", encoding='UTF-8'))
+    data = json.load(open("jsons/quotes.json", encoding='UTF-8'))
     await interactions.response.send_message(
         data['quotes'][used_quotes_buffer[-1]]['explanation'], ephemeral=True
     )
@@ -76,7 +76,7 @@ async def on_member_update(before: Member, after: Member):
 
     if before.get_role(role_id) is None:
         if after.get_role(role_id) is not None:
-            with open("punishments.json", mode='r+', encoding='UTF-8') as file:
+            with open("jsons/punishments.json", mode='r+', encoding='UTF-8') as file:
                 data = json.load(file)
                 if data['sentenced'].get(f'{after.id}') is None:
                     data['sentenced'].update({
@@ -90,7 +90,7 @@ async def on_member_update(before: Member, after: Member):
 
     elif before.get_role(role_id) is not None:
         if after.get_role(role_id) is None:
-            with open("punishments.json", mode='r+', encoding='UTF-8') as file:
+            with open("jsons/punishments.json", mode='r+', encoding='UTF-8') as file:
                 data = json.load(file)
                 if data['sentenced'].get(f'{after.id}') is not None and float(data['sentenced'].get(f'{after.id}')['time']) < datetime.utcnow().timestamp():
                     data['sentenced'].pop(f'{after.id}')
