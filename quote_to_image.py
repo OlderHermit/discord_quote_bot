@@ -68,8 +68,8 @@ def generate_image():
         ImageFont.truetype("SEGUIEMJ.ttf", 36),
     ]
 
-    data = json.load(open("quotes.json", encoding='UTF-8'))
-    conf_file = open("config.json", mode='r+', encoding='UTF-8')
+    data = json.load(open("jsons/quotes.json", encoding='UTF-8'))
+    conf_file = open("jsons/config.json", mode='r+', encoding='UTF-8')
     config = json.load(conf_file)
 
     picks = list(range(0, len(data['quotes']), 1))
