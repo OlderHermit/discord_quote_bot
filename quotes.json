@@ -101,6 +101,30 @@
       "author": "Oliwer",
       "date": "≈2024",
       "explanation": "-----"
+    },
+    {
+      "quote": "Ta mgła jest taka soczysta, jak mleko",
+      "author": "Oliwer",
+      "date": "May 2024",
+      "explanation": "W GTFO mgła była bardzo gęsta"
+    },
+    {
+      "quote": "Smacznych papierosów Julek, czy coś w tym stylu",
+      "author": "Robert",
+      "date": "May 2024",
+      "explanation": "W taki sposób Robert zakończył rozmowę z Julkiem"
+    },
+    {
+      "quote": "No i zajebiście, to cześć giniemy",
+      "author": "Duży Janek",
+      "date": "October 2022",
+      "explanation": "Były to ostatnie słowa jakie usłyszeliśmy od pilota helikopteru"
+    },
+    {
+      "quote": "Jesteś głupi albo mądry; albo na odwrót",
+      "author": "Oliwer",
+      "date": "----",
+      "explanation": "-----"
     }
   ],
   "authors": {
@@ -115,6 +139,10 @@
     "Janek": {
       "author": "Janek",
       "signature": "\uD83E\uDD8DJanek\uD83E\uDD8D"
+    },
+    "Duży Janek": {
+      "author": "Duży Janek",
+      "signature": "\uD83D\uDCAADuży Janek\uD83D\uDCAA"
     }
   }
 }
