@@ -64,21 +64,20 @@ def generate_image():
     text_color = (255, 255, 255)
 
     fonts = [
-        ImageFont.truetype("Jaini-Regular.ttf", 36),
-        ImageFont.truetype("SEGUIEMJ.ttf", 36),
+        ImageFont.truetype("assets/Jaini-Regular.ttf", 36),
+        ImageFont.truetype("assets/SEGUIEMJ.ttf", 36),
     ]
 
     data = json.load(open("jsons/quotes.json", encoding='UTF-8'))
-    conf_file = open("jsons/config.json", mode='r+', encoding='UTF-8')
-    config = json.load(conf_file)
+    # TODO generate this json if not present
+    used_file = open("jsons/used.json", mode='r+', encoding='UTF-8')
+    used = json.load(used_file)
 
     picks = list(range(0, len(data['quotes']), 1))
-    print(config['used_quotes'])
-    print(len(config['used_quotes']))
-    for e in sorted(config['used_quotes'].keys(), reverse=True):
+    for e in sorted(used['used_quotes'].keys(), reverse=True):
         del picks[int(e)]
     if len(picks) == 0:
-        config['used_quotes'].clear()
+        used['used_quotes'].clear()
         picks = list(range(0, len(data['quotes']), 1))
 
     index = random.choice(picks)
@@ -103,6 +102,7 @@ def generate_image():
             x += char_width
 
     image.save("text_image.png")
-    config['used_quotes'].update({f"{index}": {"quote": f"{quote['quote']}"}})
-    conf_file.seek(0)
-    json.dump(config, conf_file, indent=4)
+    used['used_quotes'].update({f"{index}": {"quote": f"{quote['quote']}"}})
+    used_file.seek(0)
+    json.dump(used, used_file, indent=4, ensure_ascii=False)
+    used_file.close()
