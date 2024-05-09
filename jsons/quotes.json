@@ -125,12 +125,18 @@
       "author": "Oliwer",
       "date": "----",
       "explanation": "-----"
+    },
+    {
+      "quote": "Normalnie jakbym się zupełnie liściem dupą podcierał",
+      "author": "Oliwer",
+      "date": "May 2024",
+      "explanation": "-----"
     }
   ],
   "authors": {
     "Oliwer": {
       "author": "Oliwer",
-      "signature": "\uD83C\uDF41Oliwer\uD83C\uDF41"
+      "signature": "\uD83E\uDDBEOliwer\uD83E\uDDBE"
     },
     "Robert": {
       "author": "Rober",
@@ -142,7 +148,7 @@
     },
     "Duży Janek": {
       "author": "Duży Janek",
-      "signature": "\uD83D\uDCAADuży Janek\uD83D\uDCAA"
+      "signature": "\uD83C\uDF7BDuży Janek\uD83C\uDF7B"
     }
   }
 }

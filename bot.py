@@ -13,8 +13,6 @@ import quote_to_image
 bot_token = 'MTIyNjA5NzEzNDY3NjM0ODk1OQ.GCxcgb.EHZgupFdoiqxKf-AZzIbO7nwvYZWrsdHWwKBOc'
 #bot_token = 'Nzc0NTczMDc0MTEyNzA4NjQ4.Gryj_9.sW0-C0WQ5AapulAEC0HM1HU__KlVNgdM9W41es'  # test one
 allowed_text_channels = ['tests', 'uwu']
-last_quote_time = datetime.utcnow() - timedelta(days=2)
-used_quotes_buffer = []
 default_volume = 0.2
 default_length_time = 5
 
@@ -41,8 +39,11 @@ async def on_ready():
 
 @bot.tree.command(name='quote', description='Najlepsze kwestie jakie na przestrzeni lat padły na niniejszym serwerze')
 async def quote(interactions):
-    global last_quote_time
-    if last_quote_time.day == datetime.today().day:
+    conf_file = open("jsons/config.json", mode='r+', encoding='UTF-8')
+    config = json.load(conf_file)
+    last_quote_time = tuple(map(int, config['last_quote_generated'].split(', ')))
+    today = datetime.utcnow().timetuple()[0:3]
+    if today <= last_quote_time:
         await interactions.response.send_message(
             file=discord.File('text_image.png', 'Mądrość dnia.png')
             # "Today's message has been already sent", ephemeral=True
@@ -53,19 +54,23 @@ async def quote(interactions):
     await interactions.response.send_message(
         file=discord.File('text_image.png', 'Mądrość dnia.png')
     )
-    last_quote_time = datetime.utcnow()
+    config['last_quote_generated'] = str(today)[1:-1]
+    conf_file.seek(0)
+    json.dump(config, conf_file, indent=4, ensure_ascii=False)
+    conf_file.close()
 
 
 @bot.tree.command(name='explain', description='Dodatkowe informacje \"lore\" ostatniej wypowiedzi')
 async def explain(interactions):
-    if len(used_quotes_buffer) == 0:
+    data = json.load(open("jsons/quotes.json", encoding='UTF-8'))
+    used = json.load(open("jsons/used.json", encoding='UTF-8'))
+    if len(used['used_quotes']) == 0:
         await interactions.response.send_message(
             "No quote response to send", ephemeral=True
         )
         return
-    data = json.load(open("jsons/quotes.json", encoding='UTF-8'))
     await interactions.response.send_message(
-        data['quotes'][used_quotes_buffer[-1]]['explanation'], ephemeral=True
+        data['quotes'][int(list(used['used_quotes'].keys())[-1])]['explanation'], ephemeral=True
     )
 
 
