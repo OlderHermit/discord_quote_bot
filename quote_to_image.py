@@ -72,8 +72,8 @@ async def generate_image():
     used = json.loads(await used_file.read())
 
     picks = list(range(0, len(data['quotes']), 1))
-    for e in sorted(used['used_quotes'].keys(), reverse=True):
-        del picks[int(e)]
+    for e in sorted(used['used_quotes'].keys()):
+        picks.remove(int(e))
     if len(picks) == 0:
         used['used_quotes'].clear()
         picks = list(range(0, len(data['quotes']), 1))
