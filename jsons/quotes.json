@@ -131,6 +131,42 @@
       "author": "Oliwer",
       "date": "May 2024",
       "explanation": "-----"
+    },
+    {
+      "quote": "To co, że jak masz dziewczynę to ją wyruchaj",
+      "author": "Zuza",
+      "date": "May 2024",
+      "explanation": "Byłem zbyt pijany by zapamiętać kontekst ~Zdzich"
+    },
+    {
+      "quote": "Żebro lędźwiowe",
+      "author": "Oliwer",
+      "date": "May 2024",
+      "explanation": "Powiedział Oliwer wskazując na odcinek kręgosłupa lędźwiowego"
+    },
+    {
+      "quote": "Podchodzisz z pozą i sex now",
+      "author": "Oliwer",
+      "date": "May 2024",
+      "explanation": "Kolejna część trójkąta Oliwer-Janek-Michał"
+    },
+    {
+      "quote": "To się nigdy nie zrobi (jedzenie na grillu) to jest temperatury kaloryfera",
+      "author": "Duży Janek",
+      "date": "May 2024",
+      "explanation": "-----"
+    },
+    {
+      "quote": "Ja nie jem wiejskich jajek bo są z kurzej dupy, ja jem jajka z marketu",
+      "author": "",
+      "date": "May 2024",
+      "explanation": "-----"
+    },
+    {
+      "quote": "Jajka i mleko w markecie również pochodzą od kur",
+      "author": "Michał",
+      "date": "May 2024",
+      "explanation": "Odniesienie do innego cytatu tyczącego wiejskich Jajek (Ja nie jem wiejskich jajek bo są z kurzej dupy, ja jem jajka z marketu)"
     }
   ],
   "authors": {
@@ -149,6 +185,18 @@
     "Duży Janek": {
       "author": "Duży Janek",
       "signature": "\uD83C\uDF7BDuży Janek\uD83C\uDF7B"
+    },
+    "Zuza": {
+      "author": "Zuza",
+      "signature": "\uD83E\uDD8AZuza\uD83E\uDD8A"
+    },
+    "": {
+      "author": "Missing",
+      "signature": "\uD83E\uDEF3\uD83E\uDEF3\uD83E\uDEF3\uD83E\uDEF3\uD83E\uDEF3\uD83E\uDEF3\uD83E\uDEF3\uD83E\uDEF3"
+    },
+    "Michał": {
+      "author": "Michał",
+      "signature": "\uD83D\uDC31Michał\uD83D\uDC31"
     }
   }
 }
