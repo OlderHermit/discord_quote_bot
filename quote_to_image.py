@@ -1,7 +1,7 @@
 import json
 import math
 import random
-
+import aiofiles
 from PIL import Image, ImageDraw, ImageFont
 
 
@@ -45,10 +45,7 @@ def center(text: str, maxsize: int, check_font: ImageFont, emoji_font: ImageFont
 def split_emoji(text: str):
     result = ['', '']
     for char in text:
-        if ord(char) > 512:
-            result[1] += char
-        else:
-            result[0] += char
+        result[ord(char) > 512] += char
     return result
 
 
@@ -58,7 +55,7 @@ def generate_separator(longest_size: int, check_font: ImageFont):
     return '-'*seps
 
 
-def generate_image():
+async def generate_image():
     width = 600
     text_position = (50, 50)
     text_color = (255, 255, 255)
@@ -68,10 +65,11 @@ def generate_image():
         ImageFont.truetype("assets/SEGUIEMJ.ttf", 36),
     ]
 
-    data = json.load(open("jsons/quotes.json", encoding='UTF-8'))
+    quotes_file = await aiofiles.open("jsons/quotes.json", encoding='UTF-8')
+    data = json.loads(await quotes_file.read())
     # TODO generate this json if not present
-    used_file = open("jsons/used.json", mode='r+', encoding='UTF-8')
-    used = json.load(used_file)
+    used_file = await aiofiles.open("jsons/used.json", mode='r+', encoding='UTF-8')
+    used = json.loads(await used_file.read())
 
     picks = list(range(0, len(data['quotes']), 1))
     for e in sorted(used['used_quotes'].keys(), reverse=True):
@@ -103,6 +101,7 @@ def generate_image():
 
     image.save("text_image.png")
     used['used_quotes'].update({f"{index}": {"quote": f"{quote['quote']}"}})
-    used_file.seek(0)
-    json.dump(used, used_file, indent=4, ensure_ascii=False)
-    used_file.close()
+    await used_file.seek(0)
+    await used_file.writelines(json.dumps(used, indent=4, ensure_ascii=False))
+    await used_file.close()
+    await quotes_file.close()
