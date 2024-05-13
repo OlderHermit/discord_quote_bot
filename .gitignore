@@ -166,3 +166,4 @@ bot-env/
 ffmpeg/
 /text_image.png
 /test.py
+/jsons/used.json
