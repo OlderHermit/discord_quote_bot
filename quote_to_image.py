@@ -1,5 +1,6 @@
 import json
 import math
+import os.path
 import random
 import aiofiles
 from PIL import Image, ImageDraw, ImageFont
@@ -67,7 +68,9 @@ async def generate_image():
 
     quotes_file = await aiofiles.open("jsons/quotes.json", encoding='UTF-8')
     data = json.loads(await quotes_file.read())
-    # TODO generate this json if not present
+    if not os.path.exists('jsons/used.json'):
+        async with aiofiles.open("jsons/used.json", mode='w+', encoding='UTF-8') as used_file:
+            await used_file.write('{"used_quotes" : {}}')
     used_file = await aiofiles.open("jsons/used.json", mode='r+', encoding='UTF-8')
     used = json.loads(await used_file.read())
 
