@@ -158,7 +158,7 @@
     },
     {
       "quote": "Ja nie jem wiejskich jajek bo są z kurzej dupy, ja jem jajka z marketu",
-      "author": "",
+      "author": "Weronika",
       "date": "May 2024",
       "explanation": "-----"
     },
@@ -167,6 +167,18 @@
       "author": "Michał",
       "date": "May 2024",
       "explanation": "Odniesienie do innego cytatu tyczącego wiejskich Jajek (Ja nie jem wiejskich jajek bo są z kurzej dupy, ja jem jajka z marketu)"
+    },
+    {
+      "quote": "Ooo Zuzia kurwa mać psi huncwot",
+      "author": "Oliwer",
+      "date": "May 2024",
+      "explanation": "-----"
+    },
+    {
+      "quote": "Poco Ci zoo, masz naszą grupę",
+      "author": "Zuzia",
+      "date": "May 2024",
+      "explanation": "-----"
     }
   ],
   "authors": {
@@ -197,6 +209,10 @@
     "Michał": {
       "author": "Michał",
       "signature": "\uD83D\uDC31Michał\uD83D\uDC31"
+    },
+    "Weronika": {
+      "author": "Weronika",
+      "signature": "\uD83C\uDF47Weronika\uD83C\uDF47"
     }
   }
 }
