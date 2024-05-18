@@ -94,12 +94,18 @@ async def generate_image():
 
     for j, line in enumerate(centered):
         x = text_position[0]
+        y = text_position[1] * (j + 1)
+        if j == len(centered) - 1:
+            y -= 10
         for i, char in enumerate(line):
             font = fonts[0]
             if ord(char) > 512:
                 font = fonts[1]
             char_width = draw.textlength(char, font=font)
-            draw.text((x, text_position[1] * (j + 1)), char, fill=text_color, font=font, embedded_color=True)
+            if font == fonts[1]:
+                draw.text((x, y + 10), char, fill=text_color, font=font, embedded_color=True)
+            else:
+                draw.text((x, y), char, fill=text_color, font=font, embedded_color=True)
             x += char_width
 
     image.save("text_image.png")

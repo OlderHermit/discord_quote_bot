@@ -176,7 +176,7 @@
     },
     {
       "quote": "Poco Ci zoo, masz naszą grupę",
-      "author": "Zuzia",
+      "author": "Zuza",
       "date": "May 2024",
       "explanation": "-----"
     },
@@ -185,28 +185,34 @@
      "author": "Janek",
      "date": "----",
      "explanation": "-----"
+    },
+    {
+    "quote": "Gratuluje, wygrała Pani podróż do krainy marzeń i nie zaliczonego przedmiotu",
+     "author": "Zdzich",
+     "date": "May 2024",
+     "explanation": "Wstawianie kolejnego 0 studentom z wejściówek złamało Zdzicha"
     }
   ],
   "authors": {
     "Oliwer": {
       "author": "Oliwer",
-      "signature": "\uD83E\uDDBEOliwer\uD83E\uDDBE"
+      "signature": "\uD83E\uDDBE Oliwer \uD83E\uDDBE"
     },
     "Robert": {
       "author": "Rober",
-      "signature": "\uD83C\uDF8BRobert\uD83C\uDF8B"
+      "signature": "\uD83C\uDF8B Robert \uD83C\uDF8B"
     },
     "Janek": {
       "author": "Janek",
-      "signature": "\uD83E\uDD8DJanek\uD83E\uDD8D"
+      "signature": "\uD83E\uDD8D Janek \uD83E\uDD8D"
     },
     "Duży Janek": {
       "author": "Duży Janek",
-      "signature": "\uD83C\uDF7BDuży Janek\uD83C\uDF7B"
+      "signature": "\uD83C\uDF7B Duży Janek \uD83C\uDF7B"
     },
     "Zuza": {
       "author": "Zuza",
-      "signature": "\uD83E\uDD8AZuza\uD83E\uDD8A"
+      "signature": "\uD83E\uDD8A Zuza \uD83E\uDD8A"
     },
     "": {
       "author": "Missing",
@@ -214,11 +220,15 @@
     },
     "Michał": {
       "author": "Michał",
-      "signature": "\uD83D\uDC31Michał\uD83D\uDC31"
+      "signature": "\uD83D\uDC31 Michał \uD83D\uDC31"
     },
     "Weronika": {
       "author": "Weronika",
-      "signature": "\uD83C\uDF47Weronika\uD83C\uDF47"
+      "signature": "\uD83C\uDF47 Weronika \uD83C\uDF47"
+    },
+    "Zdzich": {
+      "author": "Zdzich",
+      "signature": "☕ Zdzich ☕"
     }
   }
 }
