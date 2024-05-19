@@ -3,6 +3,7 @@ import datetime
 import json
 import math
 import os
+import time
 
 import aiofiles
 import discord
@@ -151,12 +152,14 @@ def check_config():
                        '"last_quote_generated" : "1900, 1, 1",'
                        '"bot_token": ""'
                        '}')
+        return False
+    return True
 
 
 if not check_config():
     raise Exception("Config error")
-asyncio.sleep(1)
-config_file = open("jsons/quotes.json", mode='r', encoding='UTF-8')
+time.sleep(1)
+config_file = open("jsons/config.json", mode='r', encoding='UTF-8')
 config = json.load(config_file)
 config_file.close()
 
