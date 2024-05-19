@@ -2,6 +2,8 @@ import asyncio
 import datetime
 import json
 import math
+import os
+
 import aiofiles
 import discord
 
@@ -11,8 +13,8 @@ from datetime import datetime, timedelta
 from discord import Member
 from discord.ext import commands, tasks
 
-bot_token = 'MTIyNjA5NzEzNDY3NjM0ODk1OQ.GCxcgb.EHZgupFdoiqxKf-AZzIbO7nwvYZWrsdHWwKBOc' # reik
-#bot_token = 'Nzc0NTczMDc0MTEyNzA4NjQ4.Gryj_9.sW0-C0WQ5AapulAEC0HM1HU__KlVNgdM9W41es'   # test one
+# "bot_token": "MTIyNjA5NzEzNDY3NjM0ODk1OQ.GCxcgb.EHZgupFdoiqxKf-AZzIbO7nwvYZWrsdHWwKBOc",
+# "bot_token_test": "Nzc0NTczMDc0MTEyNzA4NjQ4.Gryj_9.sW0-C0WQ5AapulAEC0HM1HU__KlVNgdM9W41es"
 validating_user = 321297277773938690
 
 intents = discord.Intents.default()
@@ -142,4 +144,20 @@ async def ticker():
     print("hello")
 
 
-bot.run(bot_token)
+def check_config():
+    if not os.path.exists('jsons/config.json'):
+        with open("jsons/config.json", mode='w+', encoding='UTF-8') as file:
+            file.write('{'
+                       '"last_quote_generated" : "1900, 1, 1",'
+                       '"bot_token": ""'
+                       '}')
+
+
+if not check_config():
+    raise Exception("Config error")
+asyncio.sleep(1)
+config_file = open("jsons/quotes.json", mode='r', encoding='UTF-8')
+config = json.load(config_file)
+config_file.close()
+
+bot.run(config['bot_token'])

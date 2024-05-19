@@ -167,3 +167,4 @@ ffmpeg/
 /text_image.png
 /test.py
 /jsons/used.json
+/jsons/config.json
