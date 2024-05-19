@@ -61,10 +61,10 @@ async def generate_image():
     text_position = (50, 50)
     text_color = (255, 255, 255)
 
-    fonts = [
-        ImageFont.truetype("assets/Jaini-Regular.ttf", 36),
-        ImageFont.truetype("assets/SEGUIEMJ.ttf", 36),
-    ]
+    fonts = {
+        "base": ImageFont.truetype("assets/Jaini-Regular.ttf", 36),
+        "icon": ImageFont.truetype("assets/SEGUIEMJ.ttf", 36),
+    }
 
     quotes_file = await aiofiles.open("jsons/quotes.json", encoding='UTF-8')
     data = json.loads(await quotes_file.read())
@@ -85,9 +85,9 @@ async def generate_image():
     quote = data['quotes'][index]
     author = data['authors'][quote['author']]
 
-    centered = split_to_size(quote['quote'], width - text_position[0] * 2, fonts[0])
+    centered = split_to_size(quote['quote'], width - text_position[0] * 2, fonts['base'])
     centered.append(
-        center(author['signature'], width - text_position[0] * 2, fonts[0], fonts[1]))
+        center(author['signature'], width - text_position[0] * 2, fonts['base'], fonts['icon']))
 
     image = Image.new("RGB", (width, 100 + 50 * len(centered)), (0x27, 0x29, 0x2E))
     draw = ImageDraw.Draw(image)
@@ -98,11 +98,11 @@ async def generate_image():
         if j == len(centered) - 1:
             y -= 10
         for i, char in enumerate(line):
-            font = fonts[0]
+            font = fonts['base']
             if ord(char) > 512:
-                font = fonts[1]
+                font = fonts['icon']
             char_width = draw.textlength(char, font=font)
-            if font == fonts[1]:
+            if font == fonts['icon']:
                 draw.text((x, y + 10), char, fill=text_color, font=font, embedded_color=True)
             else:
                 draw.text((x, y), char, fill=text_color, font=font, embedded_color=True)
