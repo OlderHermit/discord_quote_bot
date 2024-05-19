@@ -168,3 +168,5 @@ ffmpeg/
 /test.py
 /jsons/used.json
 /jsons/config.json
+lastRestart
+nohup.out
