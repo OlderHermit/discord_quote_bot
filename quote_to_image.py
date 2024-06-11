@@ -4,6 +4,7 @@ import os.path
 import random
 import aiofiles
 from PIL import Image, ImageDraw, ImageFont
+from PIL.ImageFont import FreeTypeFont
 
 
 def check_size(text: str, check_font: ImageFont):
@@ -17,10 +18,11 @@ def split_to_size(text: str, maxsize: int, check_font: ImageFont):
     longest_size = 0
     line = ''
     result = []
+    color = (255, 255, 255)
     space_width = check_size(' ', check_font)
     for c in text.split(' '):
         if combined_size + check_size(c, check_font) > maxsize:
-            result.append(center(line, maxsize, check_font))
+            result.append((center(line, maxsize, check_font), color))
             if longest_size < combined_size:
                 longest_size = combined_size
             combined_size = check_size(c, check_font) + space_width
@@ -30,8 +32,50 @@ def split_to_size(text: str, maxsize: int, check_font: ImageFont):
             line += c + ' '
     if longest_size < combined_size:
         longest_size = combined_size
-    result.append(center(line, maxsize, check_font))
-    result.append(center(generate_separator(longest_size, check_font), maxsize, check_font))
+    result.append((center(line, maxsize, check_font), color))
+    result.append((center(generate_separator(longest_size, check_font), maxsize, check_font), color))
+    return result
+
+
+def split_to_size_dialogue(dialogue: list[str], maxsize: int, check_font: ImageFont, authors):
+    author_offset = 5
+    longest_size = 0
+    result = []
+    space_width = check_size(' ', check_font)
+    spaces_equal_longest_author = math.ceil(max([check_size(author['author']+':', check_font) for author in authors])/space_width)
+    dialogue = [e.replace('[', '') for e in dialogue]
+    dialogue = [e.replace(']', ': ') for e in dialogue]
+
+    for text in dialogue:
+        combined_size = 0
+        line = ''
+        color = (255, 255, 255)
+        for i, word in enumerate(text.split(' ')):
+            if i == 0:
+                color = [x['color'] for x in authors if x['author'] == word[:-1]]
+                if len(color) == 0:
+                    color = (255, 255, 255)
+                else:
+                    color = tuple([int(s) for s in color[0].split(' ')])
+                spaces_equal_author = math.ceil(check_size(word, check_font)/space_width)
+                combined_size = check_size(word, check_font) + (spaces_equal_longest_author - spaces_equal_author + author_offset) * space_width
+                line = word + (spaces_equal_longest_author - spaces_equal_author + author_offset) * ' '
+            elif combined_size + check_size(word, check_font) > maxsize:
+                if longest_size < combined_size:
+                    longest_size = combined_size
+                result.append((line, color))
+                combined_size = (spaces_equal_longest_author + author_offset) * space_width + check_size(word, check_font) + space_width
+                line = (spaces_equal_longest_author + author_offset) * ' ' + word + ' '
+            else:
+                combined_size += check_size(word, check_font) + space_width
+                line += word + ' '
+
+        if longest_size < combined_size:
+            longest_size = combined_size
+        result.append((line, color))
+
+    color = (255, 255, 255)
+    result.append((center(generate_separator(longest_size, check_font), maxsize, check_font), color))
     return result
 
 
@@ -56,6 +100,37 @@ def generate_separator(longest_size: int, check_font: ImageFont):
     return '-'*seps
 
 
+def roll_quote(data, used):
+    picks = list(range(0, len(data['quotes']), 1))
+    for e in sorted(used['used_quotes'].keys()):
+        picks.remove(int(e))
+    if len(picks) == 0:
+        used['used_quotes'].clear()
+        picks = list(range(0, len(data['quotes']), 1))
+
+    return random.choice(picks), used
+
+
+def prepare_quote(data, quote, width: int, text_position: tuple[int, int], fonts: dict[str, FreeTypeFont]):
+    authors = [data['authors'][author] for author in quote['author'].split(';')]
+
+    centered = split_to_size(quote['quote'], width - text_position[0] * 2, fonts['base'])
+    centered.extend([
+        (center(author['signature'], width - text_position[0] * 2, fonts['base'], fonts['icon']), (255, 255, 255)) for author in authors
+    ])
+    return centered
+
+
+def prepare_dialogue(data, quote, width: int, text_position: tuple[int, int], fonts: dict[str, FreeTypeFont]):
+    authors = [data['authors'][author] for author in quote['author'].split(';')]
+
+    centered = split_to_size_dialogue(quote['quote'], width - text_position[0] * 2, fonts['base'], authors)
+    centered.extend([
+        (center(author['signature'], width - text_position[0] * 2, fonts['base'], fonts['icon']), tuple([int(s) for s in author['color'].split(' ')])) for author in authors
+    ])
+    return centered
+
+
 async def generate_image():
     width = 600
     text_position = (50, 50)
@@ -74,28 +149,23 @@ async def generate_image():
     used_file = await aiofiles.open("jsons/used.json", mode='r+', encoding='UTF-8')
     used = json.loads(await used_file.read())
 
-    picks = list(range(0, len(data['quotes']), 1))
-    for e in sorted(used['used_quotes'].keys()):
-        picks.remove(int(e))
-    if len(picks) == 0:
-        used['used_quotes'].clear()
-        picks = list(range(0, len(data['quotes']), 1))
-
-    index = random.choice(picks)
+    index, used = roll_quote(data, used)
     quote = data['quotes'][index]
-    author = data['authors'][quote['author']]
+    authors = [data['authors'][author] for author in quote['author'].split(';')]
 
-    centered = split_to_size(quote['quote'], width - text_position[0] * 2, fonts['base'])
-    centered.append(
-        center(author['signature'], width - text_position[0] * 2, fonts['base'], fonts['icon']))
+    if isinstance(quote, str):
+        centered = prepare_quote(data, quote, width, text_position, fonts)
+    else:
+        centered = prepare_dialogue(data, quote, width, text_position, fonts)
 
     image = Image.new("RGB", (width, 100 + 50 * len(centered)), (0x27, 0x29, 0x2E))
     draw = ImageDraw.Draw(image)
 
-    for j, line in enumerate(centered):
+    for j, pair in enumerate(centered):
+        line, color = pair
         x = text_position[0]
         y = text_position[1] * (j + 1)
-        if j == len(centered) - 1:
+        if j >= len(centered) - len(authors):
             y -= 10
         for i, char in enumerate(line):
             font = fonts['base']
@@ -105,7 +175,7 @@ async def generate_image():
             if font == fonts['icon']:
                 draw.text((x, y + 10), char, fill=text_color, font=font, embedded_color=True)
             else:
-                draw.text((x, y), char, fill=text_color, font=font, embedded_color=True)
+                draw.text((x, y), char, fill=color, font=font, embedded_color=True)
             x += char_width
 
     image.save("text_image.png")
