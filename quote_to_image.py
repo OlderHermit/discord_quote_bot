@@ -3,6 +3,7 @@ import math
 import os.path
 import random
 import aiofiles
+import regex
 from PIL import Image, ImageDraw, ImageFont
 from PIL.ImageFont import FreeTypeFont
 
@@ -163,10 +164,17 @@ async def generate_image():
 
     for j, pair in enumerate(centered):
         line, color = pair
+        color_copy = color
+        begin_color = False
         x = text_position[0]
         y = text_position[1] * (j + 1)
         if j >= len(centered) - len(authors):
             y -= 10
+        if re.search(regex, line) or any([x for x in line if ord(x) > 512]):
+            begin_color = True
+        else:
+            color = (255, 255, 255)
+
         for i, char in enumerate(line):
             font = fonts['base']
             if ord(char) > 512:
@@ -177,6 +185,9 @@ async def generate_image():
             else:
                 draw.text((x, y), char, fill=color, font=font, embedded_color=True)
             x += char_width
+            if begin_color and char == ':':
+                color = (255, 255, 255)
+                begin_color = False
 
     image.save("text_image.png")
     used['used_quotes'].update({f"{index}": {"quote": f"{quote['quote']}"}})
