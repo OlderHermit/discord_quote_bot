@@ -181,118 +181,301 @@
       "explanation": "-----"
     },
     {
-    "quote": "I hate niggers",
-     "author": "Janek",
-     "date": "----",
-     "explanation": "-----"
+      "quote": "I hate niggers",
+      "author": "Janek",
+      "date": "----",
+      "explanation": "-----"
     },
     {
-    "quote": "Gratuluję, wygrała Pani podróż do krainy marzeń i niezaliczonego przedmiotu",
-     "author": "Zdzich",
-     "date": "May 2024",
-     "explanation": "Wstawianie kolejnego 0 studentom z wejściówek złamało Zdzicha"
+      "quote": "Gratuluję, wygrała Pani podróż do krainy marzeń i niezaliczonego przedmiotu",
+      "author": "Zdzich",
+      "date": "May 2024",
+      "explanation": "Wstawianie kolejnego 0 studentom z wejściówek złamało Zdzicha"
     },
     {
-    "quote": "Czy chój.... No bo nie chciałem się zrobić w debila",
-     "author": "Oliwer",
-     "date": "May 2024",
-     "explanation": "Oliwer urwał zdanie to \"Czy chój\" i to był powód"
+      "quote": "Czy chój.... No bo nie chciałem się zrobić w debila",
+      "author": "Oliwer",
+      "date": "May 2024",
+      "explanation": "Oliwer urwał zdanie to \"Czy chój\" i to był powód"
     },
     {
-    "quote": "Nie róbcie sobie sióstr bo jest ciężko, róbcie sobie braci",
-     "author": "Oliwer",
-     "date": "May 2024",
-     "explanation": "Sweet home alabama"
+      "quote": "Nie róbcie sobie sióstr bo jest ciężko, róbcie sobie braci",
+      "author": "Oliwer",
+      "date": "May 2024",
+      "explanation": "Sweet home alabama"
     },
     {
-    "quote": "Zdzichu mu włożył nasionko do dupy",
-     "author": "Janek",
-     "date": "May 2024",
-     "explanation": "W lolu Zdzich strzelił w przeciwnika... Nie ma więcej kontekstu"
+      "quote": "Zdzichu mu włożył nasionko do dupy",
+      "author": "Janek",
+      "date": "May 2024",
+      "explanation": "W lolu Zdzich strzelił w przeciwnika... Nie ma więcej kontekstu"
     },
     {
-    "quote": "90 procent moich zdań jest moje",
-     "author": "Oliwer",
-     "date": "May 2024",
-     "explanation": "Chodziło o to że większość cytatów jest Oliwera"
+      "quote": "90 procent moich zdań jest moje",
+      "author": "Oliwer",
+      "date": "May 2024",
+      "explanation": "Chodziło o to że większość cytatów jest Oliwera"
     },
     {
-    "quote": "Zniszczyłem system siłowni weszłem na siłownie i wyszedłem z siłowni i dalej byłem na siłowni",
-     "author": "Oliwer",
-     "date": "May 2024",
-     "explanation": "Oliwer zepsuł system w siłowni i był dalej oznaczony jako ćwiczący po wyjściu"
+      "quote": "Zniszczyłem system siłowni weszłem na siłownie i wyszedłem z siłowni i dalej byłem na siłowni",
+      "author": "Oliwer",
+      "date": "May 2024",
+      "explanation": "Oliwer zepsuł system w siłowni i był dalej oznaczony jako ćwiczący po wyjściu"
     },
     {
-    "quote": "Specjalnie jadę 440 km żeby go zgwałcić, też chciałbyś?",
-     "author": "Oliwer",
-     "date": "May 2024",
-     "explanation": "Odnośnie wyjazdu do Gdańska by spotkać się z Michałem"
+      "quote": "Specjalnie jadę 440 km żeby go zgwałcić, też chciałbyś?",
+      "author": "Oliwer",
+      "date": "May 2024",
+      "explanation": "Odnośnie wyjazdu do Gdańska by spotkać się z Michałem"
     },
     {
-    "quote": "Keep sucking my dick",
-     "author": "Janek",
-     "date": "June 2024",
-     "explanation": "Random lolo quote"
+      "quote": "Keep sucking my dick",
+      "author": "Janek",
+      "date": "June 2024",
+      "explanation": "Random lolo quote"
     },
     {
-    "quote": [
-      "[Oliwer]Moje oczy się przyzwyczaiły do Verminków",
-      "[Janek]Twoja dupa się przyzwyczaiła",
-      "[Oliwer]Dobrze, że Twój ryj się nie przyzwyczaił",
-      "[Janek]Przyzwyczaił się",
-      "[Oliwer]Do czego, do walenia konia?!",
-      "[Michał]Ja nie walę ryjem, ale co kto lubi"
+      "quote": [
+        "[Oliwer]Moje oczy się przyzwyczaiły do Verminków",
+        "[Janek]Twoja dupa się przyzwyczaiła",
+        "[Oliwer]Dobrze, że Twój ryj się nie przyzwyczaił",
+        "[Janek]Przyzwyczaił się",
+        "[Oliwer]Do czego, do walenia konia?!",
+        "[Michał]Ja nie walę ryjem, ale co kto lubi"
       ],
-     "author": "Janek;Oliwer;Michał",
-     "date": "-----",
-     "explanation": "----------"
+      "author": "Janek;Oliwer;Michał",
+      "date": "-----",
+      "explanation": "----------"
+    },
+    {
+      "quote": "On ma kuloodporną twarz",
+      "author": "Oliwer",
+      "date": "----",
+      "explanation": "----"
+    },
+    {
+      "quote": [
+        "Moje oczy się przyzwyczaiły do Verminków",
+        "Twoja dupa się przyzwyczaiła",
+        "Dobrze, że Twój ryj się nie przyzwyczaił",
+        "Przyzwyczaił się",
+        "Do czego, do walenia konia?!",
+        "Ja nie walę ryjem, ale co kto lubi"
+      ],
+      "author": "Oliwer;Janek;Michał",
+      "date": "----",
+      "explanation": "----"
+    },
+    {
+      "quote": "Zdzichu prawdę Ci powie. Ale niestety Ci nie powie, bo go nie ma",
+      "author": "Janek",
+      "date": "----",
+      "explanation": "----"
+    },
+    {
+      "quote": [
+        "Nasram Ci do gaci",
+        "Kurde ciepło będę miał… ale szkoda, bo gówno chwilowo jest ciepłe"
+      ],
+      "author": "Janek;Oliwer",
+      "date": "----",
+      "explanation": "----"
+    },
+    {
+      "quote": [
+        "Jestem w lepszym stanie od Ciebie",
+        "Jesteś, kurwa, gównem",
+        "Czyli jestem lepszy jako gówno",
+        "Żeby być lepszym, trzeba być we wszystkim lepszym, a Ty jesteś we wszystkim w gównie"
+      ],
+      "author": "Janek;Oliwer",
+      "date": "----",
+      "explanation": "----"
+    },
+    {
+      "quote": "Regeneruję się waląc konia",
+      "author": "Janek",
+      "date": "----",
+      "explanation": "----"
+    },
+    {
+      "quote": "Twoja dupa bierze Cię na strzała",
+      "author": "Oliwer",
+      "date": "----",
+      "explanation": "----"
+    },
+    {
+      "quote": "Dobrze, że jesteś babą i nie masz fiuta, bo bym Ci jaja odstrzelił",
+      "author": "Oliwer",
+      "date": "----",
+      "explanation": "----"
+    },
+    {
+      "quote": [
+        "No i co?",
+        "Gówno, 3-0, grasz dalej chuju?"
+      ],
+      "author": "Janek;Oliwer",
+      "date": "----",
+      "explanation": "----"
+    },
+    {
+      "quote": [
+        "Ja wymyślłem słabość i zajebistość, a Ty, kurwa, wymyśliłeś, jak być debilem.",
+        "Wyruchałem Cię w dupę, kto ma rację teraz?"
+      ],
+      "author": "Oliwer;Janek",
+      "date": "----",
+      "explanation": "----"
+    },
+    {
+      "quote": "Czy jak siebie wyruchasz to zostajesz gejem?",
+      "author": "Oliwer",
+      "date": "----",
+      "explanation": "----"
+    },
+    {
+      "quote": [
+        "Jesteś taką małpką skaczącą w klatce",
+        "A ty jesteś gównem, które wpada do kibla"
+      ],
+      "author": "Duży Janek;Oliwer",
+      "date": "----",
+      "explanation": "----"
+    },
+    {
+      "quote": "Dawno nie srałem",
+      "author": "Oliwer",
+      "date": "----",
+      "explanation": "----"
+    },
+    {
+      "quote": "Powinna być Polska na całym świecie",
+      "author": "Oliwer",
+      "date": "----",
+      "explanation": "----"
+    },
+    {
+      "quote": "Żeby Ci się rodzina utopiła w wannie",
+      "author": "Michał",
+      "date": "----",
+      "explanation": "----"
+    },
+    {
+      "quote": [
+        "obert! Za Tobą!",
+        "Co masz na myśli?"
+      ],
+      "author": "Zuzia;Robert",
+      "date": "----",
+      "explanation": "----"
+    },
+    {
+      "quote": [
+        "Skąd Ty skórę wziąłeś?",
+        "Z mojej dupy. Nasrałem i dlatego wygląda jak skóra"
+      ],
+      "author": "Duży Janek;Oliwer",
+      "date": "----",
+      "explanation": "----"
+    },
+    {
+      "quote": "Twoja stara Cię rucha",
+      "author": "Oliwer",
+      "date": "----",
+      "explanation": "----"
+    },
+    {
+      "quote": "Michał walczy z trzema piekielnikami",
+      "author": "Oliwer",
+      "date": "----",
+      "explanation": "----"
+    },
+    {
+      "quote": "Oliwer jest dzisiaj piekielnikiem",
+      "author": "Zuzia",
+      "date": "----",
+      "explanation": "----"
+    },
+    {
+      "quote": "To mnie taka jara, jak mnie tak rucha we dwóch",
+      "author": "Michał",
+      "date": "----",
+      "explanation": "----"
+    },
+    {
+      "quote": "Jesteś skurwysynem płonącym ogniem",
+      "author": "Oliwer",
+      "date": "----",
+      "explanation": "----"
+    },
+    {
+      "quote": [
+        "Czy ja For Honor słyszę?",
+        "Tak, możesz wbić chuju"
+      ],
+      "author": "Robert;Oliwer",
+      "date": "----",
+      "explanation": "----"
+    },
+    {
+      "quote": "Nie srałem pięć lat",
+      "author": "Oliwer",
+      "date": "----",
+      "explanation": "----"
+    },
+    {
+      "quote": "Twoja stara liże Ci kolana, skurwysynu",
+      "author": "Oliwer",
+      "date": "----",
+      "explanation": "----"
     }
   ],
   "authors": {
     "Oliwer": {
       "author": "Oliwer",
       "signature": "\uD83E\uDDBE Oliwer \uD83E\uDDBE",
-      "color" : "220 20 60"
+      "color": "220 20 60"
     },
     "Robert": {
       "author": "Rober",
       "signature": "\uD83C\uDF8B Robert \uD83C\uDF8B",
-      "color" : "255 255 255"
+      "color": "255 255 255"
     },
     "Janek": {
       "author": "Janek",
       "signature": "\uD83E\uDD8D Janek \uD83E\uDD8D",
-      "color" : "255 215 0"
+      "color": "255 215 0"
     },
     "Duży Janek": {
       "author": "Duży Janek",
       "signature": "\uD83C\uDF7B Duży Janek \uD83C\uDF7B",
-      "color" : "255 255 255"
+      "color": "255 255 255"
     },
     "Zuza": {
       "author": "Zuza",
       "signature": "\uD83E\uDD8A Zuza \uD83E\uDD8A",
-      "color" : "255 255 255"
+      "color": "255 255 255"
     },
     "": {
       "author": "Missing",
       "signature": "\uD83E\uDEF3\uD83E\uDEF3\uD83E\uDEF3\uD83E\uDEF3\uD83E\uDEF3\uD83E\uDEF3\uD83E\uDEF3\uD83E\uDEF3",
-      "color" : "255 255 255"
+      "color": "255 255 255"
     },
     "Michał": {
       "author": "Michał",
       "signature": "\uD83D\uDC31 Michał \uD83D\uDC31",
-      "color" : "218 112 214"
+      "color": "218 112 214"
     },
     "Weronika": {
       "author": "Weronika",
       "signature": "\uD83C\uDF47 Weronika \uD83C\uDF47",
-      "color" : "255 255 255"
+      "color": "255 255 255"
     },
     "Zdzich": {
       "author": "Zdzich",
       "signature": "☕ Zdzich ☕",
-      "color" : "255 255 255"
+      "color": "255 255 255"
     }
   }
 }
