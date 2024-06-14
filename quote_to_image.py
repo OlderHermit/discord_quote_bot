@@ -9,6 +9,8 @@ import regex
 from PIL import Image, ImageDraw, ImageFont
 from PIL.ImageFont import FreeTypeFont
 
+default_font_color = (255, 255, 255)
+
 
 def check_size(text: str, check_font: ImageFont):
     if check_font is not None:
@@ -21,7 +23,7 @@ def split_to_size(text: str, maxsize: int, check_font: ImageFont):
     longest_size = 0
     line = ''
     result = []
-    color = (255, 255, 255)
+    color = default_font_color
     space_width = check_size(' ', check_font)
     for c in text.split(' '):
         if combined_size + check_size(c, check_font) > maxsize:
@@ -52,18 +54,22 @@ def split_to_size_dialogue(dialogue: list[str], maxsize: int, check_font: ImageF
     for text in dialogue:
         combined_size = 0
         line = ''
-        color = (255, 255, 255)
+
+        author = text[:text.find(':')+1]
+        text = text[len(author):]
+        color = [x['color'] for x in authors if x['author'] == author[:-1]]
+
+        if len(color) == 0:
+            color = default_font_color
+        else:
+            color = tuple([int(s) for s in color[0].split(' ')])
+
+        spaces_equal_author = math.ceil(check_size(author, check_font) / space_width)
+        combined_size = (check_size(author, check_font) + (spaces_equal_longest_author - spaces_equal_author + author_offset) * space_width)
+        line = author + (spaces_equal_longest_author - spaces_equal_author + author_offset) * ' '
+
         for i, word in enumerate(text.split(' ')):
-            if i == 0:
-                color = [x['color'] for x in authors if x['author'] == word[:-1]]
-                if len(color) == 0:
-                    color = (255, 255, 255)
-                else:
-                    color = tuple([int(s) for s in color[0].split(' ')])
-                spaces_equal_author = math.ceil(check_size(word, check_font)/space_width)
-                combined_size = check_size(word, check_font) + (spaces_equal_longest_author - spaces_equal_author + author_offset) * space_width
-                line = word + (spaces_equal_longest_author - spaces_equal_author + author_offset) * ' '
-            elif combined_size + check_size(word, check_font) > maxsize:
+            if combined_size + check_size(word, check_font) > maxsize:
                 if longest_size < combined_size:
                     longest_size = combined_size
                 result.append((line, color))
@@ -77,8 +83,7 @@ def split_to_size_dialogue(dialogue: list[str], maxsize: int, check_font: ImageF
             longest_size = combined_size
         result.append((line, color))
 
-    color = (255, 255, 255)
-    result.append((center(generate_separator(longest_size, check_font), maxsize, check_font), color))
+    result.append((center(generate_separator(longest_size, check_font), maxsize, check_font), default_font_color))
     return result
 
 
@@ -118,8 +123,9 @@ def prepare_quote(data, quote, width: int, text_position: tuple[int, int], fonts
     authors = [data['authors'][author] for author in quote['author'].split(';')]
 
     centered = split_to_size(quote['quote'], width - text_position[0] * 2, fonts['base'])
+    # noinspection PyTypeChecker
     centered.extend([
-        (center(author['signature'], width - text_position[0] * 2, fonts['base'], fonts['icon']), (255, 255, 255)) for author in authors
+        (center(author['signature'], width - text_position[0] * 2, fonts['base'], fonts['icon']), tuple([int(s) for s in author['color'].split(' ')])) for author in authors
     ])
     return centered
 
@@ -156,7 +162,7 @@ async def generate_image():
     quote = data['quotes'][index]
     authors = [data['authors'][author] for author in quote['author'].split(';')]
 
-    if isinstance(quote, str):
+    if isinstance(quote['quote'], str):
         centered = prepare_quote(data, quote, width, text_position, fonts)
     else:
         centered = prepare_dialogue(data, quote, width, text_position, fonts)
@@ -172,7 +178,7 @@ async def generate_image():
         y = text_position[1] * (j + 1)
         if j >= len(centered) - len(authors):
             y -= 10
-        if re.search('^\\w+: ', line) or any([x for x in line if ord(x) > 512]):
+        if re.search("^\\w+( \\w+)*:", line) or any([x for x in line if ord(x) > 512]):
             begin_color = True
         else:
             color = (255, 255, 255)
