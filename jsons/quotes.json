@@ -235,19 +235,6 @@
       "explanation": "Random lolo quote"
     },
     {
-      "quote": [
-        "[Oliwer]Moje oczy się przyzwyczaiły do Verminków",
-        "[Janek]Twoja dupa się przyzwyczaiła",
-        "[Oliwer]Dobrze, że Twój ryj się nie przyzwyczaił",
-        "[Janek]Przyzwyczaił się",
-        "[Oliwer]Do czego, do walenia konia?!",
-        "[Michał]Ja nie walę ryjem, ale co kto lubi"
-      ],
-      "author": "Janek;Oliwer;Michał",
-      "date": "-----",
-      "explanation": "----------"
-    },
-    {
       "quote": "On ma kuloodporną twarz",
       "author": "Oliwer",
       "date": "----",
@@ -255,12 +242,12 @@
     },
     {
       "quote": [
-        "Moje oczy się przyzwyczaiły do Verminków",
-        "Twoja dupa się przyzwyczaiła",
-        "Dobrze, że Twój ryj się nie przyzwyczaił",
-        "Przyzwyczaił się",
-        "Do czego, do walenia konia?!",
-        "Ja nie walę ryjem, ale co kto lubi"
+        "[Oliwer]Moje oczy się przyzwyczaiły do Verminków",
+        "[Janek]Twoja dupa się przyzwyczaiła",
+        "[Oliwer]Dobrze, że Twój ryj się nie przyzwyczaił",
+        "[Janek]Przyzwyczaił się",
+        "[Oliwer]Do czego, do walenia konia?!",
+        "[Michał]Ja nie walę ryjem, ale co kto lubi"
       ],
       "author": "Oliwer;Janek;Michał",
       "date": "----",
@@ -274,8 +261,8 @@
     },
     {
       "quote": [
-        "Nasram Ci do gaci",
-        "Kurde ciepło będę miał… ale szkoda, bo gówno chwilowo jest ciepłe"
+        "[Janek]Nasram Ci do gaci",
+        "[Oliwer]Kurde ciepło będę miał… ale szkoda, bo gówno chwilowo jest ciepłe"
       ],
       "author": "Janek;Oliwer",
       "date": "----",
@@ -283,10 +270,10 @@
     },
     {
       "quote": [
-        "Jestem w lepszym stanie od Ciebie",
-        "Jesteś, kurwa, gównem",
-        "Czyli jestem lepszy jako gówno",
-        "Żeby być lepszym, trzeba być we wszystkim lepszym, a Ty jesteś we wszystkim w gównie"
+        "[Janek]Jestem w lepszym stanie od Ciebie",
+        "[Oliwer]Jesteś, kurwa, gównem",
+        "[Janek]Czyli jestem lepszy jako gówno",
+        "[Oliwer]Żeby być lepszym, trzeba być we wszystkim lepszym, a Ty jesteś we wszystkim w gównie"
       ],
       "author": "Janek;Oliwer",
       "date": "----",
@@ -312,8 +299,8 @@
     },
     {
       "quote": [
-        "No i co?",
-        "Gówno, 3-0, grasz dalej chuju?"
+        "[Janek]No i co?",
+        "[Oliwer]Gówno, 3-0, grasz dalej chuju?"
       ],
       "author": "Janek;Oliwer",
       "date": "----",
@@ -321,8 +308,8 @@
     },
     {
       "quote": [
-        "Ja wymyślłem słabość i zajebistość, a Ty, kurwa, wymyśliłeś, jak być debilem.",
-        "Wyruchałem Cię w dupę, kto ma rację teraz?"
+        "[Oliwer]Ja wymyślłem słabość i zajebistość, a Ty, kurwa, wymyśliłeś, jak być debilem.",
+        "[Janek]Wyruchałem Cię w dupę, kto ma rację teraz?"
       ],
       "author": "Oliwer;Janek",
       "date": "----",
@@ -336,8 +323,8 @@
     },
     {
       "quote": [
-        "Jesteś taką małpką skaczącą w klatce",
-        "A ty jesteś gównem, które wpada do kibla"
+        "[Duży Janek]Jesteś taką małpką skaczącą w klatce",
+        "[Oliwer]A ty jesteś gównem, które wpada do kibla"
       ],
       "author": "Duży Janek;Oliwer",
       "date": "----",
@@ -363,8 +350,8 @@
     },
     {
       "quote": [
-        "obert! Za Tobą!",
-        "Co masz na myśli?"
+        "[Zuza]Robert! Za Tobą!",
+        "[Robert]Co masz na myśli?"
       ],
       "author": "Zuzia;Robert",
       "date": "----",
@@ -372,8 +359,8 @@
     },
     {
       "quote": [
-        "Skąd Ty skórę wziąłeś?",
-        "Z mojej dupy. Nasrałem i dlatego wygląda jak skóra"
+        "[Duży Janek]Skąd Ty skórę wziąłeś?",
+        "[Oliwer]Z mojej dupy. Nasrałem i dlatego wygląda jak skóra"
       ],
       "author": "Duży Janek;Oliwer",
       "date": "----",
@@ -411,8 +398,8 @@
     },
     {
       "quote": [
-        "Czy ja For Honor słyszę?",
-        "Tak, możesz wbić chuju"
+        "[Robert]Czy ja For Honor słyszę?",
+        "[Oliwer]Tak, możesz wbić chuju"
       ],
       "author": "Robert;Oliwer",
       "date": "----",
