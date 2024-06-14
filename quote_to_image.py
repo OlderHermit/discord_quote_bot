@@ -2,6 +2,8 @@ import json
 import math
 import os.path
 import random
+import re
+
 import aiofiles
 import regex
 from PIL import Image, ImageDraw, ImageFont
@@ -170,7 +172,7 @@ async def generate_image():
         y = text_position[1] * (j + 1)
         if j >= len(centered) - len(authors):
             y -= 10
-        if re.search(regex, line) or any([x for x in line if ord(x) > 512]):
+        if re.search('^\\w+: ', line) or any([x for x in line if ord(x) > 512]):
             begin_color = True
         else:
             color = (255, 255, 255)
