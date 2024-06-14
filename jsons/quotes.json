@@ -425,9 +425,9 @@
       "color": "220 20 60"
     },
     "Robert": {
-      "author": "Rober",
+      "author": "Robert",
       "signature": "\uD83C\uDF8B Robert \uD83C\uDF8B",
-      "color": "255 255 255"
+      "color": "127 255 0"
     },
     "Janek": {
       "author": "Janek",
@@ -437,12 +437,12 @@
     "Duży Janek": {
       "author": "Duży Janek",
       "signature": "\uD83C\uDF7B Duży Janek \uD83C\uDF7B",
-      "color": "255 255 255"
+      "color": "46 139 87"
     },
     "Zuza": {
       "author": "Zuza",
       "signature": "\uD83E\uDD8A Zuza \uD83E\uDD8A",
-      "color": "255 255 255"
+      "color": "255 99 71"
     },
     "": {
       "author": "Missing",
@@ -457,12 +457,12 @@
     "Weronika": {
       "author": "Weronika",
       "signature": "\uD83C\uDF47 Weronika \uD83C\uDF47",
-      "color": "255 255 255"
+      "color": "255 239 213"
     },
     "Zdzich": {
       "author": "Zdzich",
       "signature": "☕ Zdzich ☕",
-      "color": "255 255 255"
+      "color": "233 150 122"
     }
   }
 }
