@@ -440,6 +440,43 @@
       "author": "Zuza",
       "date": "June 2024",
       "explanation": "Woman"
+    },
+    {
+        "quote": "Zaraz zobaczysz jak się zesrasz",
+        "author": "Oliwer",
+        "date": "----",
+        "explanation": "----"
+    },
+    {
+        "quote": "Na tej mapie wygrywa ten kto pierwszy nasra na wroga",
+        "author": "Janek",
+        "date": "----",
+        "explanation": "----"
+    },
+    {
+        "quote": [
+            "[Duży Janek]Jakie jest twoje zainteresowanie tym meczem w skali od 1 do 10?",
+            "[Janek]Kiedy Pizza?"
+        ],
+        "author": "Duży Janek;Janek",
+        "date": "----",
+        "explanation": "----"
+    },
+    {
+        "quote": [
+            "[Adam]Kupiłem sobie doritosy Flaming Hot",
+            "[Zdzich]Flaming cock",
+            "[Adam]No żebyś wiedział że Flaming cock pali nawet jak sikasz."
+        ],
+        "author": "Adam;Zdzich",
+        "date": "----",
+        "explanation": "----"
+    },
+    {
+        "quote": "I'm stuck stepWoman",
+        "author": "Zdzich",
+        "date": "----",
+        "explanation": "----"
     }
   ],
   "authors": {
@@ -487,6 +524,11 @@
       "author": "Zdzich",
       "signature": "☕ Zdzich ☕",
       "color": "233 150 122"
+    },
+    "Adam": {
+      "author": "Adam",
+      "signature": "🚬 Adam 🚬",
+      "color": "0 0 0"
     }
   }
 }
