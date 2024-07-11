@@ -477,6 +477,53 @@
         "author": "Zdzich",
         "date": "----",
         "explanation": "----"
+    },
+    {
+        "quote": "Baby... kurwa znudziło mi się",
+        "author": "Oliwer",
+        "date": "July 2024",
+        "explanation": "Oliwer zaczął śpiewać ale szybko zdecydował się zmienić utwór"
+    },
+    {
+        "quote": "Nie no ciebie to trzeba unicestwić",
+        "author": "Oliwer",
+        "date": "July 2024",
+        "explanation": "Tak to był tekst do Julki (i nikogo to nie dziwi)"
+    },
+    {
+        "quote": "Nie no ciebie to trzeba unicestwić",
+        "author": "Oliwer",
+        "date": "July 2024",
+        "explanation": "Tak to był tekst do Julki (i nikogo to nie dziwi)"
+    },
+    {
+        "quote": "Nie no ciebie to trzeba unicestwić",
+        "author": "Oliwer",
+        "date": "July 2024",
+        "explanation": "Tak to był tekst do Julki (i nikogo to nie dziwi)"
+    },
+    {
+        "quote": [
+            "[Duży Janek]Polecam się nawodnić. Mniejszy kac na następny dzień.",
+            "[Janek]Ja będę kacem (dźwięki dochodzenia), tam nie ma nic to jest woda pięciolitrowa.",
+            "[Duży Janek]To jest woda.",
+            "[Janek]Czyli to jest nic. To nie jest piwo...."
+        ],
+        "author": "Duży Janek;Janek",
+        "date": "----",
+        "explanation": "----"
+    },
+    {
+        "quote": "Julka potrafi zrobić coś z niczego i się tym zabić.",
+        "author": "Julek",
+        "date": "----",
+        "explanation": "----"
+    },
+    {
+        "quote": "Obudziłeś się w nocniku",
+        "author": "Oliwer",
+        "date": "----",
+        "explanation": "----"
     }
   ],
   "authors": {
@@ -529,6 +576,11 @@
       "author": "Adam",
       "signature": "🚬 Adam 🚬",
       "color": "0 0 0"
+    },
+    "Julek": {
+      "author": "Julek",
+      "signature": "🚗 Julek 🚗",
+      "color": "255 99 71"
     }
   }
 }
