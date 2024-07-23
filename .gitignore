@@ -170,3 +170,5 @@ ffmpeg/
 /jsons/config.json
 lastRestart
 nohup.out
+# symlink to jsons/quotes.json
+/quote_web_ui/static/quotes.json
