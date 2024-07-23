@@ -85,7 +85,7 @@ async def explain(interactions):
 @bot.tree.command(name='submit', description='Możliwość dodania własnego cytatu')
 async def submit(interactions):
     await interactions.response.send_message(
-        f"Functionality moved to here ${bot_address}:${bot_port}", ephemeral=True, delete_after=60
+        f"Functionality moved to here http://{bot_address}:{bot_port}", ephemeral=True, delete_after=60
     )
     # validating_member: Member = next((m for m in interactions.guild.members if m.id == validating_user), None)
     # if validating_member is None:
