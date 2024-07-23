@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="pl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Generate Quote</title>
+    <link rel="stylesheet" href="/static/css.css"></link>
+    <script src="static/scripts.js"></script>
+</head>
+<body>
+    <div class="column" id="left">
+        <div id="dialog">
+        </div>
+        <span style="font-size: large;">Explanation <input type="text" class="quote" id="explanation"></span>
+        <span style="font-size: large;">Data <input type="date" class="quote" id="date"></span>
+        <div>
+            <input class="buttons" type="button" onclick="generate_quote()" value="Submit"></input>
+            <input class="buttons" type="submit" onclick="location.reload(false)" value="Clear"></input>
+        </div>
+    </div>
+    <div class="column" id="right">
+        <textarea id="quote_output" name="output" rows="4"></textarea>
+        <input class="buttons" type="button" onclick="triggerCommand()" value="send"></input>
+    </div>
+    
+</body>
+<script type="text/javascript">
+    clear_output()
+</script>
+</html>

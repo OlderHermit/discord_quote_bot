@@ -6,7 +6,9 @@ import os
 import time
 
 import aiofiles
+import aiohttp_cors
 import discord
+from aiohttp import web
 
 import quote_to_image
 
@@ -36,6 +38,7 @@ async def on_ready():
     except Exception as e:
         print(f'got {e}')
     # ticker.start()
+    await bot.loop.create_task(start_server())
 
     print(f'We have logged in as {bot.user.name}')
 
@@ -138,6 +141,49 @@ async def on_member_update(before: Member, after: Member):
                         #<t:{math.ceil((float(data['sentenced'][f'{after.id}']['time'])) + time_difference)}:R>
                         #timedelta(seconds=math.ceil((float(data['sentenced'][f'{after.id}']['time'])) - datetime.utcnow().timestamp()))
                     )
+
+
+async def start_server():
+    app = web.Application()
+    app.add_routes([web.post('/', handle)])
+    app.add_routes([web.get('/', return_web_page)])
+    app.router.add_static('/static/', path='quote_web_ui/static', name='static')
+
+
+    cors = aiohttp_cors.setup(app, defaults={
+        "*": aiohttp_cors.ResourceOptions(
+            allow_credentials=True,
+            expose_headers="*",
+            allow_headers="*",
+        )
+    })
+
+    for route in list(app.router.routes()):
+        cors.add(route)
+
+    runner = web.AppRunner(app)
+    await runner.setup()
+    site = web.TCPSite(runner, 'localhost', 8000)
+    await site.start()
+
+
+async def return_web_page(request):
+    return web.FileResponse(path=os.path.abspath('quote_web_ui/index.html'))
+
+
+async def handle(request):
+    try:
+        data = json.loads((await request.json()))
+        print(data)
+        #command = data.get('command', '')
+
+        #if command == 'my_command':
+            #asyncio.run_coroutine_threadsafe(run_my_command(), bot.loop)
+        return web.json_response({'status': 'success', 'message': 'Command executed'})
+        #else:
+            #return web.json_response({'status': 'error', 'message': 'Invalid command'}, status=400)
+    except Exception as e:
+        return web.json_response({'status': 'error', 'message': str(e)}, status=500)
 
 
 @tasks.loop(seconds=2)
