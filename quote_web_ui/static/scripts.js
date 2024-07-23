@@ -142,8 +142,8 @@ async function triggerCommand() {
             body: JSON.stringify(data),
         });
 
-        console.log('Success:', data);
+        alert('Quote successfully Added')
     } catch (error) {
-        console.error('Error:', error);
+        alert(`There was an server error: ${error}`)
     }
 }
