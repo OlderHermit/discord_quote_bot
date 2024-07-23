@@ -134,7 +134,8 @@ async function triggerCommand() {
     const data = document.getElementById('quote_output').value;
 
     try {
-        const response = await fetch('http://localhost:8000', {
+        //should be loaded from json?
+        const response = await fetch('http://172.27.27.2:8000', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
