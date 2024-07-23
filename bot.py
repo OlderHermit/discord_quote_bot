@@ -153,7 +153,7 @@ async def start_server():
     app = web.Application()
     app.add_routes([web.post('/', submit_through_web)])
     app.add_routes([web.get('/', return_web_page)])
-    app.router.add_static('/static/', path='quote_web_ui/static', name='static')
+    app.router.add_static('/static/', path='quote_web_ui/static', name='static', follow_symlinks=True)
 
     cors = aiohttp_cors.setup(app, defaults={
         "*": aiohttp_cors.ResourceOptions(
