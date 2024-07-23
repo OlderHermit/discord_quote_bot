@@ -18,12 +18,14 @@ from discord.ext import commands, tasks
 
 # "bot_token": "MTIyNjA5NzEzNDY3NjM0ODk1OQ.GCxcgb.EHZgupFdoiqxKf-AZzIbO7nwvYZWrsdHWwKBOc",
 # "bot_token_test": "Nzc0NTczMDc0MTEyNzA4NjQ4.Gryj_9.sW0-C0WQ5AapulAEC0HM1HU__KlVNgdM9W41es"
+bot_address = '172.27.27.2'
+bot_port = 8000
 validating_user = 321297277773938690
 
 intents = discord.Intents.default()
 intents.message_content = True
 
-client = discord.Client(intents=intents)
+#client = discord.Client(intents=intents)
 bot = commands.Bot(command_prefix=';', intents=discord.Intents.all())
 
 lock_playing_state = asyncio.Lock()
@@ -81,22 +83,25 @@ async def explain(interactions):
 
 
 @bot.tree.command(name='submit', description='Możliwość dodania własnego cytatu')
-async def submit(interactions, quote: str, author: str, date: str, additional_info: str = '-----'):
-    validating_member: Member = next((m for m in interactions.guild.members if m.id == validating_user), None)
-    if validating_member is None:
-        return
-    msg = {
-      'quote': quote,
-      'author': author,
-      'date': date,
-      'explanation': additional_info
-    }
-    res = str(msg).replace(',', ',\n').replace('{', '{\n').replace('}', '\n}').replace('\n', '\n\t').replace('\'', '\"')
-    res += f'\nsubmitted by {interactions.user.name}\n'
-    await validating_member.send(res)
+async def submit(interactions):
     await interactions.response.send_message(
-        "Request submitted", ephemeral=True, delete_after=60
+        f"Functionality moved to here ${bot_address}:${bot_port}", ephemeral=True, delete_after=60
     )
+    # validating_member: Member = next((m for m in interactions.guild.members if m.id == validating_user), None)
+    # if validating_member is None:
+    #     return
+    # msg = {
+    #     'quote': quote,
+    #     'author': author,
+    #     'date': date,
+    #     'explanation': additional_info
+    # }
+    # res = str(msg).replace(',', ',\n').replace('{', '{\n').replace('}', '\n}').replace('\n', '\n\t').replace('\'', '\"')
+    # res += f'\nsubmitted by {interactions.user.name}\n'
+    # await validating_member.send(res)
+    # await interactions.response.send_message(
+    #     "Request submitted", ephemeral=True, delete_after=60
+    # )
 
 
 @bot.event
@@ -122,7 +127,8 @@ async def on_member_update(before: Member, after: Member):
         if after.get_role(role_id) is None:
             async with aiofiles.open("jsons/punishments.json", mode='w+', encoding='UTF-8') as file:
                 data = json.loads(await file.read())
-                if data['sentenced'].get(f'{after.id}') is not None and float(data['sentenced'].get(f'{after.id}')['time']) < datetime.utcnow().timestamp():
+                if data['sentenced'].get(f'{after.id}') is not None and float(
+                        data['sentenced'].get(f'{after.id}')['time']) < datetime.utcnow().timestamp():
                     data['sentenced'].pop(f'{after.id}')
                     await file.seek(0)
                     await file.writelines(json.dumps(data, indent=4, ensure_ascii=False))
@@ -145,10 +151,9 @@ async def on_member_update(before: Member, after: Member):
 
 async def start_server():
     app = web.Application()
-    app.add_routes([web.post('/', handle)])
+    app.add_routes([web.post('/', submit_through_web)])
     app.add_routes([web.get('/', return_web_page)])
     app.router.add_static('/static/', path='quote_web_ui/static', name='static')
-
 
     cors = aiohttp_cors.setup(app, defaults={
         "*": aiohttp_cors.ResourceOptions(
@@ -163,7 +168,7 @@ async def start_server():
 
     runner = web.AppRunner(app)
     await runner.setup()
-    site = web.TCPSite(runner, 'localhost', 8000)
+    site = web.TCPSite(runner, bot_address, bot_port)
     await site.start()
 
 
@@ -171,17 +176,23 @@ async def return_web_page(request):
     return web.FileResponse(path=os.path.abspath('quote_web_ui/index.html'))
 
 
-async def handle(request):
+async def submit_through_web(request):
     try:
         data = json.loads((await request.json()))
-        print(data)
-        #command = data.get('command', '')
 
-        #if command == 'my_command':
-            #asyncio.run_coroutine_threadsafe(run_my_command(), bot.loop)
+        validating_member: Member = next((m for m in bot.guilds[0].members if m.id == validating_user), None)
+        if validating_member is None:
+            return web.json_response({'status': 'error', 'message': 'invalid validating pipeline'}, status=500)
+
+        res = (str(data)
+               .replace(',', ',\n')
+               .replace('{', '{\n')
+               .replace('}', '\n}')
+               .replace('\n', '\n\t')
+               .replace('\'', '\"'))
+        await validating_member.send(res)
+
         return web.json_response({'status': 'success', 'message': 'Command executed'})
-        #else:
-            #return web.json_response({'status': 'error', 'message': 'Invalid command'}, status=400)
     except Exception as e:
         return web.json_response({'status': 'error', 'message': str(e)}, status=500)
 
