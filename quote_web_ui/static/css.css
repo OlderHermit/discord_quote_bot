@@ -1,0 +1,48 @@
+.column {
+    /*float: left;*/
+    width: 50%;
+    /*display: flex;*/
+    align-items: center;
+    justify-content: center;
+    flex-direction: row;
+}
+
+.body:after {
+    content: "";
+    display: table;
+    clear: both;
+}
+
+#left {
+    display: flex;
+    flex-direction: column;
+}
+
+body {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+
+}
+
+textarea {
+    resize: none;
+    width: 90%;
+}
+
+.quote {
+    font-size: large;
+    margin-top: 1em;
+    margin-bottom: -0.5em;
+    margin-left: 0.5em;
+    /*width: 25em;*/
+}
+
+.select {
+    font-size: large;
+}
+
+.buttons {
+    margin: 1em;
+    font-size: large;
+}
