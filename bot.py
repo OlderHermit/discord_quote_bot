@@ -87,21 +87,6 @@ async def submit(interactions):
     await interactions.response.send_message(
         f"Functionality moved to here http://{bot_address}:{bot_port}", ephemeral=True, delete_after=60
     )
-    # validating_member: Member = next((m for m in interactions.guild.members if m.id == validating_user), None)
-    # if validating_member is None:
-    #     return
-    # msg = {
-    #     'quote': quote,
-    #     'author': author,
-    #     'date': date,
-    #     'explanation': additional_info
-    # }
-    # res = str(msg).replace(',', ',\n').replace('{', '{\n').replace('}', '\n}').replace('\n', '\n\t').replace('\'', '\"')
-    # res += f'\nsubmitted by {interactions.user.name}\n'
-    # await validating_member.send(res)
-    # await interactions.response.send_message(
-    #     "Request submitted", ephemeral=True, delete_after=60
-    # )
 
 
 @bot.event
@@ -150,6 +135,16 @@ async def on_member_update(before: Member, after: Member):
 
 
 async def start_server():
+    # prepare authors to load
+    quotes_file = await aiofiles.open("jsons/quotes.json", mode='r+', encoding='UTF-8')
+    quotes = json.loads(await quotes_file.read())
+    await quotes_file.close()
+
+    authors_file = await aiofiles.open("quote_web_ui/static/authors.json", mode='w+', encoding='UTF-8')
+    await authors_file.writelines(json.dumps(quotes['authors'], indent=4, ensure_ascii=False))
+    await authors_file.close()
+
+    # start web server
     app = web.Application()
     app.add_routes([web.post('/', submit_through_web)])
     app.add_routes([web.get('/', return_web_page)])

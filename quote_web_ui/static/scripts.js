@@ -1,7 +1,7 @@
 var number_of_dialog_fields = 0;
 var possible_authors;
 let data;
-readTextFile("static/quotes.json", function (text) {
+readTextFile("static/authors.json", function (text) {
     data = JSON.parse(text);
     add_field();
 });
@@ -26,7 +26,7 @@ function add_field() {
     option.setAttribute("selected", "");
     author.options.add(option);
 
-    for (e of Object.entries(data['authors']).map(([k, v]) => v)) {
+    for (e of Object.entries(data).map(([k, v]) => v)) {
         var option = document.createElement("option")
         option.value = e['author'];
         option.text = e['author'];
