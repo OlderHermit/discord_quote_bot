@@ -36,7 +36,7 @@ function add_field() {
     option.setAttribute("selected", "");
     author.options.add(option);
 
-    for (e of Object.entries(data).map(([k, v]) => v).sort((l, p) => l['author'] > p['author'])) {
+    for (let e of Object.entries(data).map(([k, v]) => v).sort((l, p) => l['author'] > p['author'])) {
         var option = document.createElement("option")
         option.value = e['author'];
         option.text = e['author'];
@@ -115,7 +115,7 @@ function generate_quote() {
     } else {
         var base_quote = "";
         var authors = "";
-        for (e of list.filter(([a,q]) => a != "-------")) {
+        for (let e of list.filter(([a,q]) => a != "-------")) {
             base_quote += `\t\t"[${e[0]}]${e[1]}",\n`;
             authors += e[0] + ';';
         }
@@ -167,37 +167,43 @@ async function triggerCommand() {
     }
 }
 
-function generate_rune_for_background() {
+function generate_rune_for_background(list) {
     var delay = Math.random() * 25;
     var amount = Math.floor(Math.random() * 9) + 3;
     var x = Math.random() * 105 - 20;
     var y = Math.random() * 95;
     
-    // var retry_counter = 5;
-    // console.log('try');
-    // console.log(list.filter(e => Math.abs(e.y - y) <= 2).length);
-    // console.log(list.filter(e => Math.abs(e.y - y) <= 2).filter(e => e.left < x && e.right > x).length);
-    // while(list.filter(e => Math.abs(e.y - y) <= 2).filter(e => e.left < x && e.right > x).length > 0 && retry_counter > 0){
-    //     console.log('retry');
-    //     x = Math.random() * 105 - 20;
-    //     y = Math.random() * 95;
-    //     retry_counter--;
-    // }
+    var retry_counter = 5;
+    // console.log(`try have already saved ${list.length}`);
+    // console.log(list.filter(e => Math.abs(e.top - y*vh/100) <= 16).length);
+    // console.log(list.filter(e => Math.abs(e.top - y*vh/100) <= 16).filter(e => e.left < x*vw/100 && vw - e.right > x*vw/100).length);
+    // console.log(list.filter(e => Math.abs(e.top - y*vh/100) <= 16).filter(e => e.left < x*vw/100 && vw - e.right > x*vw/100).filter(e => e.left < x*vw/100 + 8.5*amount && vw - e.right > x*vw/100 + 8.5*amount).length);
+    while(list
+        .filter(e => Math.abs(e.top - y*vh/100) <= 16)
+        .filter(e => e.left < x*vw/100 && vw - e.right > x*vw/100)
+        .filter(e => e.left < x*vw/100 + 8.5*amount && vw - e.right > x*vw/100 + 8.5*amount)
+        .length > 0 && retry_counter > 0
+    ){
+        // console.log('retry');
+        x = Math.random() * 105 - 20;
+        y = Math.random() * 95;
+        retry_counter--;
+    }
 
-    // if (retry_counter == 0){
-    //     console.log('dupa');
-    //     x = 0;
-    //     y = 0;
-    //     amount = 0;
-    // }
+    if (retry_counter == 0){
+        // console.log('dupa');
+        x = 0;
+        y = 0;
+        amount = 0;
+    }
     
 
     var rune = document.createElement("div");
 
     rune.className = "runes-container";
-    rune.style = `left: ${x}%;top: ${y}vh;animation: scrollAnimation ${amount*7}s infinite linear;animation-delay: ${delay}s`;
+    rune.style = `left: ${x}vw;top: ${y}vh;animation: scrollAnimation ${amount*7}s infinite linear;animation-delay: ${delay}s`;
 
-    for(i=0; i < amount; i++){
+    for(let i=0; i < amount; i++){
         var character = document.createElement("div");
 
         character.className = "rune";
@@ -209,10 +215,14 @@ function generate_rune_for_background() {
 }
 
 function generate_background() {
-    //var generated = []
-    for(j=0; j < 200; j++){
-        //var e = generate_rune_for_background(generated);
-        document.getElementById("background").appendChild(generate_rune_for_background());
-        //generated.push(e.getBoundingClientRect());
+    var generated = []
+    vw = Math.max(document.documentElement.clientWidth || 0, window.innerWidth || 0);
+    vh = Math.max(document.documentElement.clientHeight || 0, window.innerHeight || 0);
+
+    // console.log(`vw: ${vw}  vh: ${vh}`);
+    for(let i=0; i < 200; i++){
+        var e = generate_rune_for_background(generated);
+        document.getElementById("background").appendChild(e);
+        generated.push(e.getBoundingClientRect());
     }
 }

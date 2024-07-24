@@ -1,11 +1,12 @@
 .column {
     position: relative;
     z-index: 2;
+    display: flex;
     width: fit-content;
     height: fit-content;
     align-items: center;
     justify-content: center;
-    flex-direction: row;
+    flex-direction: column;
     background-color: #fdf5e6;
     box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
     border-radius: 5px;
@@ -19,21 +20,16 @@
     clear: both;
 }
 
-#left {
-    display: flex;
-    flex-direction: column;
-    position: relative;
-    z-index: 2;
-}
-
 body {
     margin: 0;
     padding: 0;
     position: relative;
+    height: 100vh;
     display: flex;
     justify-content: center;
     background-color: #e2d2b4;
     overflow-x: hidden;
+    align-items: center;
 }
 
 .quote {
@@ -53,6 +49,7 @@ body {
 .table {
     padding: 5px;
     font-size: large;
+
 }
 
 .table td {
