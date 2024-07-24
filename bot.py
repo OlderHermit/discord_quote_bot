@@ -40,7 +40,7 @@ async def on_ready():
     except Exception as e:
         print(f'got {e}')
     # ticker.start()
-    await bot.loop.create_task(start_server())
+    #await bot.loop.create_task(start_server())
 
     print(f'We have logged in as {bot.user.name}')
 
