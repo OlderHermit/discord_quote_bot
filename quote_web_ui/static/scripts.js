@@ -36,7 +36,7 @@ function add_field() {
     option.setAttribute("selected", "");
     author.options.add(option);
 
-    for (e of Object.entries(data).map(([k, v]) => v)) {
+    for (e of Object.entries(data).map(([k, v]) => v).sort((l, p) => l['author'] > p['author'])) {
         var option = document.createElement("option")
         option.value = e['author'];
         option.text = e['author'];
