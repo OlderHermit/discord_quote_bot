@@ -1,5 +1,5 @@
-var number_of_dialog_fields = 0;
-var possible_authors;
+let number_of_dialog_fields = 0;
+let possible_authors;
 let data;
 const runes = [
     'ᚠ', 'ᚡ', 'ᚢ', 'ᚣ', 'ᚤ', 'ᚥ', 'ᚦ', 'ᚧ', 'ᚨ', 'ᚩ', 'ᚪ', 'ᚫ', 'ᚬ', 'ᚭ', 'ᚮ', 'ᚯ',
@@ -20,14 +20,14 @@ function clear_output() {
 }
 
 function add_field() {
-    var container = document.getElementById("dialog");
-    var line = document.createElement("tr");
-    var author = document.createElement("select");
+    const container = document.getElementById("dialog");
+    const line = document.createElement("tr");
+    const author = document.createElement("select");
     author.className = "select";
     author.name = "author" + number_of_dialog_fields;
     author.id = "author" + number_of_dialog_fields;
 
-    var option = document.createElement("option");
+    let option = document.createElement("option");
     option.value = "-------";
     option.text = "-------";
     option.className = "option";
@@ -37,18 +37,18 @@ function add_field() {
     author.options.add(option);
 
     for (let e of Object.entries(data).map(([k, v]) => v).sort((l, p) => l['author'] > p['author'])) {
-        var option = document.createElement("option")
+        option = document.createElement("option");
         option.value = e['author'];
         option.text = e['author'];
         option.className = "option";
         //option.style = "color: rgb(" + e['color'].replace(/ /g, ", ") + ");"
         author.options.add(option);
     }
-    var td = document.createElement("td");
+    let td = document.createElement("td");
     td.appendChild(author);
     line.appendChild(td);
 
-    var input = document.createElement("input");
+    const input = document.createElement("input");
     input.type = "text";
     input.className = "quote"
     input.id = "quote" + number_of_dialog_fields;
@@ -56,8 +56,8 @@ function add_field() {
     input.spellcheck = "true"
     input.setAttribute("onkeypress", "click_press(event)");
     input.setAttribute("selected", "");
-    
-    var td = document.createElement("td");
+
+    td = document.createElement("td");
     td.appendChild(input);
     line.appendChild(td);
     container.appendChild(line)
@@ -83,11 +83,11 @@ function generate_quote() {
       "explanation": "----"
     }
     */
-    var list = [];
-    var quote = "";
-    var date = new Date(document.getElementById("date").value);
-    var explanation = document.getElementById("explanation").value;
-    var date_string = "";
+    const list = [];
+    let quote = "";
+    const date = new Date(document.getElementById("date").value);
+    let explanation = document.getElementById("explanation").value;
+    let date_string = "";
 
     if (isNaN(date)) {
         date_string = "----";
@@ -100,8 +100,8 @@ function generate_quote() {
         explanation = "----";
 
     for (i = 0; i < number_of_dialog_fields; i++) {
-        var author = document.getElementById("author" + i);
-        var quote = document.getElementById("quote" + i);
+        const author = document.getElementById("author" + i);
+        quote = document.getElementById("quote" + i);
         if (author.options[author.selectedIndex].text != "-------")
             list.push([author.options[author.selectedIndex].text, quote.value]);
     }
@@ -168,11 +168,11 @@ async function triggerCommand() {
 }
 
 function generate_rune_for_background(list) {
-    var delay = Math.random() * 25;
-    var amount = Math.floor(Math.random() * 9) + 3;
-    var x = Math.random() * 105 - 20;
-    var y = Math.random() * 95;
-    
+    let delay = Math.random() * 25;
+    let amount = Math.floor(Math.random() * 9) + 3;
+    let x = Math.random() * 105 - 20;
+    let y = Math.random() * 95;
+
     var retry_counter = 5;
     // console.log(`try have already saved ${list.length}`);
     // console.log(list.filter(e => Math.abs(e.top - y*vh/100) <= 16).length);
@@ -196,15 +196,15 @@ function generate_rune_for_background(list) {
         y = 0;
         amount = 0;
     }
-    
 
-    var rune = document.createElement("div");
+
+    const rune = document.createElement("div");
 
     rune.className = "runes-container";
     rune.style = `left: ${x}vw;top: ${y}vh;animation: scrollAnimation ${amount*7}s infinite linear;animation-delay: ${delay}s`;
 
     for(let i=0; i < amount; i++){
-        var character = document.createElement("div");
+        const character = document.createElement("div");
 
         character.className = "rune";
         character.style = `animation-delay: ${delay+i*0.5}s`;
@@ -215,13 +215,13 @@ function generate_rune_for_background(list) {
 }
 
 function generate_background() {
-    var generated = []
+    const generated = [];
     vw = Math.max(document.documentElement.clientWidth || 0, window.innerWidth || 0);
     vh = Math.max(document.documentElement.clientHeight || 0, window.innerHeight || 0);
 
     // console.log(`vw: ${vw}  vh: ${vh}`);
     for(let i=0; i < 200; i++){
-        var e = generate_rune_for_background(generated);
+        let e = generate_rune_for_background(generated);
         document.getElementById("background").appendChild(e);
         generated.push(e.getBoundingClientRect());
     }
