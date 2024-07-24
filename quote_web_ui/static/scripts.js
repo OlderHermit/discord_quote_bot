@@ -1,6 +1,15 @@
 var number_of_dialog_fields = 0;
 var possible_authors;
 let data;
+const runes = [
+    'ᚠ', 'ᚡ', 'ᚢ', 'ᚣ', 'ᚤ', 'ᚥ', 'ᚦ', 'ᚧ', 'ᚨ', 'ᚩ', 'ᚪ', 'ᚫ', 'ᚬ', 'ᚭ', 'ᚮ', 'ᚯ',
+    'ᚰ', 'ᚱ', 'ᚲ', 'ᚳ', 'ᚴ', 'ᚵ', 'ᚶ', 'ᚷ', 'ᚸ', 'ᚹ', 'ᚺ', 'ᚻ', 'ᚼ', 'ᚽ', 'ᚾ', 'ᚿ',
+    'ᛀ', 'ᛁ', 'ᛂ', 'ᛃ', 'ᛄ', 'ᛅ', 'ᛆ', 'ᛇ', 'ᛈ', 'ᛉ', 'ᛊ', 'ᛋ', 'ᛌ', 'ᛍ', 'ᛎ', 'ᛏ',
+    'ᛐ', 'ᛑ', 'ᛒ', 'ᛓ', 'ᛔ', 'ᛕ', 'ᛖ', 'ᛗ', 'ᛘ', 'ᛙ', 'ᛚ', 'ᛛ', 'ᛜ', 'ᛝ', 'ᛞ', 'ᛟ',
+    'ᛠ', 'ᛡ', 'ᛢ', 'ᛣ', 'ᛤ', 'ᛥ', 'ᛦ', 'ᛧ', 'ᛨ', 'ᛩ', 'ᛪ', '᛫', '᛬', '᛭', 'ᛮ', 'ᛯ',
+    'ᛰ'
+];
+
 readTextFile("static/authors.json", function (text) {
     data = JSON.parse(text);
     add_field();
@@ -12,6 +21,7 @@ function clear_output() {
 
 function add_field() {
     var container = document.getElementById("dialog");
+    var line = document.createElement("tr");
     var author = document.createElement("select");
     author.className = "select";
     author.name = "author" + number_of_dialog_fields;
@@ -34,7 +44,10 @@ function add_field() {
         //option.style = "color: rgb(" + e['color'].replace(/ /g, ", ") + ");"
         author.options.add(option);
     }
-    container.appendChild(author);
+    var td = document.createElement("td");
+    td.appendChild(author);
+    line.appendChild(td);
+
     var input = document.createElement("input");
     input.type = "text";
     input.className = "quote"
@@ -43,8 +56,12 @@ function add_field() {
     input.spellcheck = "true"
     input.setAttribute("onkeypress", "click_press(event)");
     input.setAttribute("selected", "");
-    container.appendChild(input);
-    container.appendChild(document.createElement("br"));
+    
+    var td = document.createElement("td");
+    td.appendChild(input);
+    line.appendChild(td);
+    container.appendChild(line)
+    
     number_of_dialog_fields++;
 }
 
@@ -125,11 +142,6 @@ function click_press(event) {
     }
 }
 
-function copy_to_clipboard(){
-    var area = document.getElementById('quote_output');
-    navigator.clipboard.writeText(area.value);
-}
-
 async function triggerCommand() {
     const data = document.getElementById('quote_output').value;
 
@@ -147,4 +159,26 @@ async function triggerCommand() {
     } catch (error) {
         alert(`There was an server error: ${error}`)
     }
+}
+
+function generate_rune_for_background() {
+    var x = Math.random() * 105 - 20;
+    var y = Math.random() * 95;
+    var amount = Math.floor(Math.random() * 9) + 3;
+    var delay = Math.random() * 25;
+
+    var rune = document.createElement("div");
+
+    rune.className = "runes-container";
+    rune.style = `left: ${x}%;top: ${y}vh;animation-delay: ${delay}s`;
+
+    for(i=0; i < amount; i++){
+        var character = document.createElement("div");
+
+        character.className = "rune";
+        character.style = `animation-delay: ${delay+i*0.5}s`;
+        character.append(runes[Math.floor(Math.random() * runes.length)]);
+        rune.appendChild(character);
+    }
+    return rune;
 }

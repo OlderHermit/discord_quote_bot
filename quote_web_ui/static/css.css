@@ -1,10 +1,15 @@
 .column {
-    /*float: left;*/
-    width: 50%;
-    /*display: flex;*/
+    position: relative;
+    z-index: 2;
+    width: fit-content;
     align-items: center;
     justify-content: center;
     flex-direction: row;
+    background-color: #fdf5e6;
+    box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
+    border-radius: 5px;
+    transition: 0.3s;
+    margin-top: 1em;
 }
 
 .body:after {
@@ -16,25 +21,22 @@
 #left {
     display: flex;
     flex-direction: column;
+    position: relative;
+    z-index: 2;
 }
 
 body {
-    width: 100%;
+    margin: 0;
+    padding: 0;
+    position: relative;
     display: flex;
     justify-content: center;
-
-}
-
-textarea {
-    resize: none;
-    width: 90%;
+    background-color: #e2d2b4;
+    overflow-x: hidden;
 }
 
 .quote {
     font-size: large;
-    margin-top: 1em;
-    margin-bottom: -0.5em;
-    margin-left: 0.5em;
     /*width: 25em;*/
 }
 
@@ -45,4 +47,64 @@ textarea {
 .buttons {
     margin: 1em;
     font-size: large;
+}
+
+.table {
+    padding: 5px;
+    font-size: large;
+}
+
+.table td {
+    padding: 5px;
+}
+
+
+/* .runes-container {
+    z-index: 0;
+    position: absolute;
+    align-items: baseline;
+    animation: scrollAnimation 15s infinite linear;
+} */
+
+@keyframes scrollAnimation {
+    0% {
+        transform: translateX(0%);
+    }
+
+    100% {
+        transform: translateX(400%);
+    }
+}
+
+.runes-container {
+    display: flex;
+    width: auto;
+    position: absolute;
+    animation: scrollAnimation 30s infinite linear;
+    padding: auto;
+}
+
+.rune {
+    z-index:0;
+    font-size: 1em;
+    font-family: 'RuneScape UF', serif;
+    color: rgba(41, 18, 3, 0.8);
+    animation: fadeInOut 20s infinite;
+    opacity: 0;
+}
+
+@keyframes fadeInOut {
+
+    0%,
+    100% {
+        opacity: 0;
+    }
+    10%,
+    30% {
+        opacity: 1;
+    }
+    31%,
+    100% {
+        opacity: 0;
+    }
 }
