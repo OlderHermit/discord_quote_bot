@@ -33,18 +33,10 @@
     </div>
     
 </body>
-<div id="background">
-    <div class="runes-container" style="left: 22%;top: 37vh;">
-        <div class="rune" style="animation-delay: 1.25s;">ᚠ</div>
-        <div class="rune" style="animation-delay: 1.75s;">ᚢ</div>
-        <div class="rune" style="animation-delay: 2.25s;">ᚦ</div>
-    </div>
-</div>
+<div id="background"></div>
 <script type="text/javascript">
-    clear_output()
-    for(j=0; j < 200; j++){
-        document.getElementById("background").appendChild(generate_rune_for_background());
-    }
+    clear_output();
+    generate_background();
 </script>
 
 </html>

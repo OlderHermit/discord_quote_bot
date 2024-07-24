@@ -105,7 +105,12 @@ function generate_quote() {
         if (author.options[author.selectedIndex].text != "-------")
             list.push([author.options[author.selectedIndex].text, quote.value]);
     }
-    if (list.length == 1) {
+    if (list.length == 0){
+        alert("Can't submit quote without author");
+        clear_output();
+        return;
+    }
+    else if (list.length == 1) {
         quote = `{\n\t"quote": "${list[0][1]}",\n\t"author": "${list[0][0]}",\n\t"date": "${date_string}",\n\t"explanation": "${explanation}"\n}`;
     } else {
         var base_quote = "";
@@ -120,7 +125,6 @@ function generate_quote() {
         quote = `{\n\t"quote": [\n${base_quote}\n\t],\n\t"author": "${authors}",\n\t"date": "${date_string}",\n\t"explanation": "${explanation}"\n}`;
     }
     document.getElementById("quote_output").value = quote;
-    return quote;
 }
 
 function readTextFile(file, callback) {
@@ -144,7 +148,9 @@ function click_press(event) {
 
 async function triggerCommand() {
     const data = document.getElementById('quote_output').value;
-
+    if (data == "")
+        return;
+    
     try {
         //should be loaded from json?
         const response = await fetch('http://172.27.27.2:8000', {
@@ -162,15 +168,34 @@ async function triggerCommand() {
 }
 
 function generate_rune_for_background() {
+    var delay = Math.random() * 25;
+    var amount = Math.floor(Math.random() * 9) + 3;
     var x = Math.random() * 105 - 20;
     var y = Math.random() * 95;
-    var amount = Math.floor(Math.random() * 9) + 3;
-    var delay = Math.random() * 25;
+    
+    // var retry_counter = 5;
+    // console.log('try');
+    // console.log(list.filter(e => Math.abs(e.y - y) <= 2).length);
+    // console.log(list.filter(e => Math.abs(e.y - y) <= 2).filter(e => e.left < x && e.right > x).length);
+    // while(list.filter(e => Math.abs(e.y - y) <= 2).filter(e => e.left < x && e.right > x).length > 0 && retry_counter > 0){
+    //     console.log('retry');
+    //     x = Math.random() * 105 - 20;
+    //     y = Math.random() * 95;
+    //     retry_counter--;
+    // }
+
+    // if (retry_counter == 0){
+    //     console.log('dupa');
+    //     x = 0;
+    //     y = 0;
+    //     amount = 0;
+    // }
+    
 
     var rune = document.createElement("div");
 
     rune.className = "runes-container";
-    rune.style = `left: ${x}%;top: ${y}vh;animation-delay: ${delay}s`;
+    rune.style = `left: ${x}%;top: ${y}vh;animation: scrollAnimation ${amount*7}s infinite linear;animation-delay: ${delay}s`;
 
     for(i=0; i < amount; i++){
         var character = document.createElement("div");
@@ -181,4 +206,13 @@ function generate_rune_for_background() {
         rune.appendChild(character);
     }
     return rune;
+}
+
+function generate_background() {
+    //var generated = []
+    for(j=0; j < 200; j++){
+        //var e = generate_rune_for_background(generated);
+        document.getElementById("background").appendChild(generate_rune_for_background());
+        //generated.push(e.getBoundingClientRect());
+    }
 }

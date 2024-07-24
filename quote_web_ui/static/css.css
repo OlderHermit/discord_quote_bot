@@ -2,6 +2,7 @@
     position: relative;
     z-index: 2;
     width: fit-content;
+    height: fit-content;
     align-items: center;
     justify-content: center;
     flex-direction: row;
@@ -58,14 +59,6 @@ body {
     padding: 5px;
 }
 
-
-/* .runes-container {
-    z-index: 0;
-    position: absolute;
-    align-items: baseline;
-    animation: scrollAnimation 15s infinite linear;
-} */
-
 @keyframes scrollAnimation {
     0% {
         transform: translateX(0%);
@@ -80,7 +73,6 @@ body {
     display: flex;
     width: auto;
     position: absolute;
-    animation: scrollAnimation 30s infinite linear;
     padding: auto;
 }
 
