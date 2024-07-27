@@ -28,6 +28,11 @@ function clear_output() {
     document.getElementById("quote_output").textContent = "";
 }
 
+function clear_input() {
+    document.getElementById("explanation").value = "";
+    document.getElementById("date").value = "";
+}
+
 function add_field() {
     const container = document.getElementById("dialog");
     const line = document.createElement("tr");
