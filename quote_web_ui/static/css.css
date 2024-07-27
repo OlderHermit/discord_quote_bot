@@ -34,6 +34,7 @@ body {
 
 .quote {
     font-size: large;
+    width: fit-content;
     /*width: 25em;*/
 }
 
