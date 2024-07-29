@@ -165,6 +165,7 @@ async def start_server():
     await runner.setup()
     site = web.TCPSite(runner, bot_address, bot_port)
     await site.start()
+    print("website is on")
 
 
 async def return_web_page(request):
