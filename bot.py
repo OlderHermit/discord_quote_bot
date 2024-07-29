@@ -18,7 +18,7 @@ from discord.ext import commands, tasks
 
 # "bot_token": "redacted",
 # "bot_token_test": "redacted"
-bot_address = '172.27.27.2'
+bot_address = 'localhost'
 bot_port = 8000
 validating_user = 321297277773938690
 
