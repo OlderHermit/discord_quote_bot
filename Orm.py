@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import List
 
 from sqlalchemy import ForeignKey, String, Table, Column, CheckConstraint
@@ -62,3 +63,14 @@ class Color(Base):
         return f'Color(id={self.id}, red={self.red}, green={self.green}, blue={self.blue}, author={self.author_id}'
 
 
+class Config(Base):
+    __tabename__ = 'config'
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    bot_token: Mapped[str]
+    address: Mapped[str]
+    port: Mapped[str]
+    last_used: Mapped[datetime]
+
+    def __repr__(self) -> str:
+        return f'Config(id={self.id}, token=secret last 5 characters{self.bot_token[-5:]}, adress={self.address}:{self.port}, last_used={self.last_used}'
