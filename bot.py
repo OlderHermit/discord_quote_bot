@@ -3,12 +3,15 @@ import datetime
 import json
 import math
 import os
+import shutil
 import time
 
 import aiofiles
 import aiohttp_cors
 import discord
 from aiohttp import web
+from sqlalchemy import create_engine, select, Engine
+from sqlalchemy.orm import sessionmaker, Session
 
 import quote_to_image
 
@@ -16,20 +19,21 @@ from datetime import datetime, timedelta
 from discord import Member
 from discord.ext import commands, tasks
 
+from orm import Config, Base, Quote
+
 # "bot_token": "MTIyNjA5NzEzNDY3NjM0ODk1OQ.GCxcgb.EHZgupFdoiqxKf-AZzIbO7nwvYZWrsdHWwKBOc",
 # "bot_token_test": "Nzc0NTczMDc0MTEyNzA4NjQ4.Gryj_9.sW0-C0WQ5AapulAEC0HM1HU__KlVNgdM9W41es"
-bot_address = '172.27.27.2'
-bot_port = 8000
 validating_user = 321297277773938690
 
 intents = discord.Intents.default()
 intents.message_content = True
 
-#client = discord.Client(intents=intents)
 bot = commands.Bot(command_prefix=';', intents=discord.Intents.all())
 
 lock_playing_state = asyncio.Lock()
-is_playing = False
+session: Session = None
+engine: Engine = None
+config: Config = None
 
 
 @bot.event
@@ -47,9 +51,8 @@ async def on_ready():
 
 @bot.tree.command(name='quote', description='Najlepsze kwestie jakie na przestrzeni lat padły na niniejszym serwerze')
 async def quote(interactions):
-    conf_file = await aiofiles.open("jsons/config.json", mode='r+', encoding='UTF-8')
-    config = json.loads(await conf_file.read())
-    last_quote_time = tuple(map(int, config['last_quote_generated'].split(', ')))
+    load_config()
+    last_quote_time = config.last_used.timetuple()[0:3]
     today = datetime.utcnow().timetuple()[0:3]
     if today <= last_quote_time:
         await interactions.response.send_message(
@@ -58,34 +61,34 @@ async def quote(interactions):
         )
         return
 
-    await quote_to_image.generate_image()
+    await quote_to_image.generate_image(engine)
     await interactions.response.send_message(
         file=discord.File('text_image.png', 'Mądrość dnia.png')
     )
-    config['last_quote_generated'] = str(today)[1:-1]
-    await conf_file.seek(0)
-    await conf_file.writelines(json.dumps(config, indent=4, ensure_ascii=False))
-    await conf_file.close()
+
+    config.last_used = datetime.utcnow()
+    session.commit()
 
 
 @bot.tree.command(name='explain', description='Dodatkowe informacje \"lore\" ostatniej wypowiedzi')
 async def explain(interactions):
-    data = json.load(open("jsons/quotes.json", encoding='UTF-8'))
-    used = json.load(open("jsons/used.json", encoding='UTF-8'))
-    if len(used['used_quotes']) == 0:
+
+    if config.last_quote_id is not None:
         await interactions.response.send_message(
             "No quote response to send", ephemeral=True
         )
         return
     await interactions.response.send_message(
-        data['quotes'][int(list(used['used_quotes'].keys())[-1])]['explanation'], ephemeral=True
+        session.scalars(select(Quote).where(Quote.id == config.last_quote_id)).one()
+        .explanation,
+        ephemeral=True
     )
 
 
 @bot.tree.command(name='submit', description='Możliwość dodania własnego cytatu')
 async def submit(interactions):
     await interactions.response.send_message(
-        f"Functionality moved to here http://{bot_address}:{bot_port}", ephemeral=True, delete_after=60
+        f"Functionality moved to here http://{config.address}:{config.port}", ephemeral=True, delete_after=60
     )
 
 
@@ -135,6 +138,7 @@ async def on_member_update(before: Member, after: Member):
 
 
 async def start_server():
+    # TODO MIGRATE THIS TO LOAD FROM DB
     # prepare authors to load
     quotes_file = await aiofiles.open("jsons/quotes.json", mode='r+', encoding='UTF-8')
     quotes = json.loads(await quotes_file.read())
@@ -163,9 +167,24 @@ async def start_server():
 
     runner = web.AppRunner(app)
     await runner.setup()
-    site = web.TCPSite(runner, bot_address, bot_port)
+    site = web.TCPSite(runner, config.address, int(config.port))
     await site.start()
     print("website is on")
+
+
+def start_db():
+    global session, engine
+    engine = create_engine("sqlite:///quotes.db")
+    Base.metadata.create_all(engine)
+    session = Session(engine)
+    print("db is on")
+    load_config()
+
+
+def load_config():
+    global config
+    config = session.scalars(select(Config).where(Config.id.is_(0))).one()
+    print("config loaded")
 
 
 async def return_web_page(request):
@@ -198,22 +217,8 @@ async def ticker():
     print("hello")
 
 
-def check_config():
-    if not os.path.exists('jsons/config.json'):
-        with open("jsons/config.json", mode='w+', encoding='UTF-8') as file:
-            file.write('{'
-                       '"last_quote_generated" : "1900, 1, 1",'
-                       '"bot_token": ""'
-                       '}')
-        return False
-    return True
-
-
-if not check_config():
-    raise Exception("Config error")
-time.sleep(1)
-config_file = open("jsons/config.json", mode='r', encoding='UTF-8')
-config = json.load(config_file)
-config_file.close()
-
-bot.run(config['bot_token'])
+start_db()
+if config is None:
+    print('Couldn\'t load bot token from db')
+    exit()
+bot.run(config.bot_token)
