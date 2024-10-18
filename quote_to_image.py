@@ -62,7 +62,7 @@ def split_to_size_dialogue(dialogue: list[str], maxsize: int, check_font: ImageF
 
         author = text[:text.find(':')+1]
         text = text[len(author):]
-        color = [tuple([x.color.red, x.color.green, x.color.blue]) for x in authors if x.id == author[:-1]]
+        color = [(x.color.red, x.color.green, x.color.blue) for x in authors if x.id == author[:-1]][0]
 
         spaces_equal_author = math.ceil(check_size(author, check_font) / space_width)
         combined_size = (check_size(author, check_font) + (spaces_equal_longest_author - spaces_equal_author + author_offset) * space_width)
@@ -110,17 +110,18 @@ def generate_separator(longest_size: int, check_font: ImageFont):
 
 def prepare_quote(quote: str, author: Author, width: int, text_position: tuple[int, int], fonts: dict[str, FreeTypeFont]):
     centered = split_to_size(quote, width - text_position[0] * 2, fonts['base'])
-    centered.extend(
-        (center(author.signature, width - text_position[0] * 2, fonts['base'], fonts['icon']), tuple([author.color.red, author.color.green, author.color.blue]))
+    centered.append(
+        (center(author.signature, width - text_position[0] * 2, fonts['base'], fonts['icon']), (author.color.red, author.color.green, author.color.blue))
     )
     return centered
 
 
 def prepare_dialogue(quote: str, authors: list[Author], width: int, text_position: tuple[int, int], fonts: dict[str, FreeTypeFont]):
     centered = split_to_size_dialogue(quote.split('[NEW_SENTENCE]'), width - text_position[0] * 2, fonts['base'], authors)
-    centered.extend([
-        (center(author.signature, width - text_position[0] * 2, fonts['base'], fonts['icon']), tuple([author.color.red, author.color.green, author.color.blue])) for author in authors
-    ])
+    for author in authors:
+        centered.append(
+            (center(author.signature, width - text_position[0] * 2, fonts['base'], fonts['icon']), (author.color.red, author.color.green, author.color.blue))
+        )
     return centered
 
 
@@ -137,6 +138,10 @@ async def generate_image(engine: Engine):
     session = Session(engine)
     data = session.query(Quote).options(joinedload(Quote.authors)).filter(Quote.used.is_(False)).all()
 
+    if len(data) == 0:
+        # TODO restart data
+        pass
+
     quote = random.choice([e for e in data])
     authors = [e for e in quote.authors]
 
@@ -149,6 +154,7 @@ async def generate_image(engine: Engine):
     draw = ImageDraw.Draw(image)
 
     for j, pair in enumerate(centered):
+        print(pair)
         line, color = pair
         begin_color = False
         x = text_position[0]
@@ -177,4 +183,4 @@ async def generate_image(engine: Engine):
     image.save("text_image.png")
     quote.used = True
     session.commit()
-    session.close()
+    return quote.id
