@@ -61,12 +61,13 @@ async def quote(interactions):
         )
         return
 
-    await quote_to_image.generate_image(engine)
+    q_id = await quote_to_image.generate_image(engine)
     await interactions.response.send_message(
         file=discord.File('text_image.png', 'Mądrość dnia.png')
     )
 
     config.last_used = datetime.utcnow()
+    config.last_quote_id = q_id
     session.commit()
 
 
@@ -183,6 +184,7 @@ def start_db():
 
 def load_config():
     global config
+    config = None
     config = session.scalars(select(Config).where(Config.id.is_(0))).one()
     print("config loaded")
 
