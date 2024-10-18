@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import List
 
-from sqlalchemy import ForeignKey, String, Table, Column, CheckConstraint
+from sqlalchemy import ForeignKey, String, Table, Column, CheckConstraint, TypeDecorator, Integer
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
 
@@ -17,12 +17,26 @@ association_table = Table(
 )
 
 
+class Timestamp(TypeDecorator):
+    impl = Integer
+
+    def process_bind_param(self, value, dialect):
+        if isinstance(value, datetime):
+            return int(value.timestamp())
+        return value
+
+    def process_result_value(self, value, dialect):
+        if value is not None:
+            return datetime.fromtimestamp(value)
+        return value
+
+
 class Author(Base):
     __tablename__ = 'author'
 
     id: Mapped[str] = mapped_column(primary_key=True)
     signature: Mapped[str] = mapped_column(String(30))
-    color: Mapped['color'] = relationship()
+    color: Mapped['Color'] = relationship()
 
     def __repr__(self) -> str:
         return f'Author(id={self.id}, signature={self.signature}, color={self.color})'
@@ -39,7 +53,7 @@ class Quote(Base):
     confirmed: Mapped[bool] = mapped_column(default=False)
     used: Mapped[bool] = mapped_column(default=False)
 
-    author: Mapped[List[Author]] = relationship(secondary=association_table)
+    authors: Mapped[List[Author]] = relationship(secondary=association_table)
 
     def __repr__(self) -> str:
         return f'Quote(id={self.id}, quote={self.quote}, date={self.date}, explanation={self.explanation}'
@@ -53,7 +67,7 @@ class Color(Base):
     green: Mapped[int] = mapped_column(default=255)
     blue: Mapped[int] = mapped_column(default=255)
 
-    author_id: Mapped[int] = mapped_column(ForeignKey('author.id'))
+    author_id: Mapped[str] = mapped_column(ForeignKey('author.id'), nullable=True)
 
     CheckConstraint('red >= 0 AND red <= 255', name='check_red_value')
     CheckConstraint('green >= 0 AND green <= 255', name='check_green_value')
@@ -64,13 +78,14 @@ class Color(Base):
 
 
 class Config(Base):
-    __tabename__ = 'config'
+    __tablename__ = 'config'
 
     id: Mapped[int] = mapped_column(primary_key=True)
     bot_token: Mapped[str]
     address: Mapped[str]
     port: Mapped[str]
-    last_used: Mapped[datetime]
+    last_used: Mapped[datetime] = mapped_column(Timestamp)
+    last_quote_id: Mapped[int] = mapped_column(ForeignKey('quote.id'), nullable=True)
 
     def __repr__(self) -> str:
         return f'Config(id={self.id}, token=secret last 5 characters{self.bot_token[-5:]}, adress={self.address}:{self.port}, last_used={self.last_used}'
