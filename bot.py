@@ -4,6 +4,7 @@ import json
 import math
 import os
 import shutil
+import sqlite3
 import time
 
 import aiofiles
@@ -31,6 +32,7 @@ intents.message_content = True
 bot = commands.Bot(command_prefix=';', intents=discord.Intents.all())
 
 lock_playing_state = asyncio.Lock()
+path_to_db = 'quotes.db'
 session: Session = None
 engine: Engine = None
 config: Config = None
@@ -167,9 +169,33 @@ async def start_server():
     print("website is on")
 
 
+def check_sqlite_integrity():
+    try:
+        db = os.path.join(os.path.curdir, path_to_db)
+        db_back = os.path.join(os.path.curdir, path_to_db + '_backup')
+        with sqlite3.connect(db) as conn:
+            cursor = conn.cursor()
+            cursor.execute("PRAGMA integrity_check;")
+            result = cursor.fetchone()
+            if result[0] == "ok":
+                print("Database is intact.")
+                shutil.copy(db, db_back)
+                return True
+            else:
+                print("Database is corrupted:", result[0])
+                return False
+
+    except sqlite3.Error as e:
+        print("Error accessing the database:", e)
+        return False
+
+
 def start_db():
+    if not check_sqlite_integrity():
+        print("db cound not be started")
+        return
     global session, engine
-    engine = create_engine("sqlite:///quotes.db")
+    engine = create_engine(f"sqlite:///{path_to_db}")
     Base.metadata.create_all(engine)
     session = Session(engine)
     print("db is on")
