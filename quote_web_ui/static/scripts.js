@@ -19,10 +19,12 @@ const runes_sizes = {
     'ᛰ':9.1
 };
 
-readTextFile("static/authors.json", function (text) {
-    data = JSON.parse(text);
-    add_field();
-});
+
+window.onload += async () => {
+    const response = await fetch('/authors', {headers: {'Content-Type': 'application/json'}});
+    if (!response.ok) throw new Error(`Couldn't load authors: ${response.status}`);
+    data = JSON.parse(await response.json());
+}
 
 function clear_output() {
     document.getElementById("quote_output").textContent = "";
@@ -50,10 +52,10 @@ function add_field() {
     option.setAttribute("selected", "");
     author.options.add(option);
 
-    for (let e of Object.entries(data).map(([k, v]) => v).sort((l, p) => l['author'] > p['author'])) {
+    for (let e of data.sort()) {
         option = document.createElement("option");
-        option.value = e['author'];
-        option.text = e['author'];
+        option.value = e;
+        option.text = e;
         option.className = "option";
         //option.style = "color: rgb(" + e['color'].replace(/ /g, ", ") + ");"
         author.options.add(option);
@@ -139,18 +141,6 @@ function generate_quote() {
         quote = `{\n\t"quote": [\n${base_quote}\n\t],\n\t"author": "${authors}",\n\t"date": "${date_string}",\n\t"explanation": "${explanation}"\n}`;
     }
     document.getElementById("quote_output").value = quote;
-}
-
-function readTextFile(file, callback) {
-    var rawFile = new XMLHttpRequest();
-    rawFile.overrideMimeType("application/json");
-    rawFile.open("GET", file, true);
-    rawFile.onreadystatechange = function () {
-        if (rawFile.readyState === 4 && rawFile.status == "200") {
-            callback(rawFile.responseText);
-        }
-    }
-    rawFile.send(null);
 }
 
 function click_press(event) {

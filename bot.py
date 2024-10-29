@@ -19,7 +19,7 @@ from datetime import datetime, timedelta
 from discord import Member
 from discord.ext import commands, tasks
 
-from orm import Config, Base, Quote
+from orm import Config, Base, Quote, Author
 
 # "bot_token": "MTIyNjA5NzEzNDY3NjM0ODk1OQ.GCxcgb.EHZgupFdoiqxKf-AZzIbO7nwvYZWrsdHWwKBOc",
 # "bot_token_test": "Nzc0NTczMDc0MTEyNzA4NjQ4.Gryj_9.sW0-C0WQ5AapulAEC0HM1HU__KlVNgdM9W41es"
@@ -139,20 +139,14 @@ async def on_member_update(before: Member, after: Member):
 
 
 async def start_server():
-    # TODO MIGRATE THIS TO LOAD FROM DB
-    # prepare authors to load
-    quotes_file = await aiofiles.open("jsons/quotes.json", mode='r+', encoding='UTF-8')
-    quotes = json.loads(await quotes_file.read())
-    await quotes_file.close()
-
-    authors_file = await aiofiles.open("quote_web_ui/static/authors.json", mode='w+', encoding='UTF-8')
-    await authors_file.writelines(json.dumps(quotes['authors'], indent=4, ensure_ascii=False))
-    await authors_file.close()
+    # TODO CREATE SYNC FUNCTION RUNNING AFTER X TIME UPDATING DB AND STATIC FILES
 
     # start web server
     app = web.Application()
     app.add_routes([web.post('/', submit_through_web)])
-    app.add_routes([web.get('/', return_web_page)])
+    app.add_routes([web.get('/', return_web_page_main)])
+    app.add_routes([web.get('/approve', return_web_page_approve)])
+    app.add_routes([web.get('/authors', return_authors_data)])
     app.router.add_static('/static/', path='quote_web_ui/static', name='static', follow_symlinks=True)
 
     cors = aiohttp_cors.setup(app, defaults={
@@ -189,8 +183,19 @@ def load_config():
     print("config loaded")
 
 
-async def return_web_page(request):
+async def return_web_page_main(request):
     return web.FileResponse(path=os.path.abspath('quote_web_ui/index.html'))
+
+
+async def return_web_page_approve(request):
+    return web.FileResponse(path=os.path.abspath('quote_web_ui/approve.html'))
+
+
+async def return_authors_data(request):
+    authors = list(map(lambda a: a.id, session.scalars(select(Author)).all()))
+    return web.json_response(
+        json.dumps(authors, indent=4, ensure_ascii=False)
+    )
 
 
 async def submit_through_web(request):
