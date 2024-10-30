@@ -25,10 +25,9 @@
             </tr>
         </table>
         <div>
-            <input class="buttons" type="button" onclick="generate_quote();triggerCommand()" value="Submit"></input>
+            <input class="buttons" type="button" onclick="generate_quote();send_quote()" value="Submit"></input>
             <input class="buttons" type="submit" onclick="location.reload(false)" value="Clear"></input>
         </div>
-        <textarea id="quote_output" name="output" rows="4" hidden disabled></textarea>
     </div>
     <div id="background"></div>
 </body>
@@ -37,6 +36,7 @@
     clear_output();
     clear_input();
     generate_background();
+    add_field()
 </script>
 
 </html>

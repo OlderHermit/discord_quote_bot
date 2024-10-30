@@ -1,6 +1,7 @@
 let number_of_dialog_fields = 0;
 let possible_authors;
 let data;
+let quote;
 const runes = [
     'ᚠ', 'ᚡ', 'ᚢ', 'ᚣ', 'ᚤ', 'ᚥ', 'ᚦ', 'ᚧ', 'ᚨ', 'ᚩ', 'ᚪ', 'ᚫ', 'ᚬ', 'ᚭ', 'ᚮ', 'ᚯ',
     'ᚰ', 'ᚱ', 'ᚲ', 'ᚳ', 'ᚴ', 'ᚵ', 'ᚶ', 'ᚷ', 'ᚸ', 'ᚹ', 'ᚺ', 'ᚻ', 'ᚼ', 'ᚽ', 'ᚾ', 'ᚿ',
@@ -20,12 +21,6 @@ const runes_sizes = {
 };
 
 
-window.onload += async () => {
-    const response = await fetch('/authors', {headers: {'Content-Type': 'application/json'}});
-    if (!response.ok) throw new Error(`Couldn't load authors: ${response.status}`);
-    data = JSON.parse(await response.json());
-}
-
 function clear_output() {
     document.getElementById("quote_output").textContent = "";
 }
@@ -35,7 +30,7 @@ function clear_input() {
     document.getElementById("date").value = "";
 }
 
-function add_field() {
+async function add_field() {
     const container = document.getElementById("dialog");
     const line = document.createElement("tr");
     const author = document.createElement("select");
@@ -51,6 +46,13 @@ function add_field() {
     option.setAttribute("hidden", "");
     option.setAttribute("selected", "");
     author.options.add(option);
+
+    if (data == null) {
+        const response = await fetch('/authors', {headers: {'Content-Type': 'application/json'}});
+        if (!response.ok) throw new Error(`Couldn't load authors: ${response.status}`);
+        data = JSON.parse(await response.json());
+    }
+
 
     for (let e of data.sort()) {
         option = document.createElement("option");
@@ -77,7 +79,7 @@ function add_field() {
     td.appendChild(input);
     line.appendChild(td);
     container.appendChild(line)
-    
+
     number_of_dialog_fields++;
 }
 
@@ -100,7 +102,6 @@ function generate_quote() {
     }
     */
     const list = [];
-    let quote = "";
     const date = new Date(document.getElementById("date").value);
     let explanation = document.getElementById("explanation").value;
     let date_string = "";
@@ -140,7 +141,6 @@ function generate_quote() {
 
         quote = `{\n\t"quote": [\n${base_quote}\n\t],\n\t"author": "${authors}",\n\t"date": "${date_string}",\n\t"explanation": "${explanation}"\n}`;
     }
-    document.getElementById("quote_output").value = quote;
 }
 
 function click_press(event) {
@@ -150,25 +150,27 @@ function click_press(event) {
     }
 }
 
-async function triggerCommand() {
-    const data = document.getElementById('quote_output').value;
-    if (data == "")
+async function send_quote() {
+    if (quote == null)
         return;
     
     try {
         //should be loaded from json?
-        const response = await fetch('http://172.27.27.2:8000', {
+        const response = await fetch('/', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify(data),
+            body: JSON.stringify(quote),
         });
-
-        alert('Quote successfully Added')
+        if (response.ok)
+            alert('Quote successfully Added')
+        else
+            alert(response.text())
     } catch (error) {
         alert(`There was an server error: ${error}`)
     }
+    quote = null;
 }
 
 function generate_rune_for_background(list) {
@@ -193,7 +195,7 @@ function generate_rune_for_background(list) {
         rune.appendChild(character);
     }
 
-    var retry_counter = 50;
+    let retry_counter = 50;
     // console.log(`try have already saved ${list.length}`);
     // console.log(list.filter(e => Math.abs(e.top - y*vh/100) <= 16).length);
     // console.log(list.filter(e => Math.abs(e.top - y*vh/100) <= 16).filter(e => e.left < x*vw/100 && vw - e.right > x*vw/100).length);
@@ -209,7 +211,7 @@ function generate_rune_for_background(list) {
         retry_counter--;
     }
 
-    if (retry_counter == 0){
+    if (retry_counter <= 0){
         x = 0;
         y = 0;
         rune = document.createElement("div");
