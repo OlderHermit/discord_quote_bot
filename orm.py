@@ -58,6 +58,9 @@ class Quote(Base):
     def __repr__(self) -> str:
         return f'Quote(id={self.id}, quote={self.quote}, date={self.date}, explanation={self.explanation}'
 
+    def as_dict(self):
+        return {c.name: getattr(self, c.name) for c in self.__table__.columns}
+
 
 class Color(Base):
     __tablename__ = 'color'

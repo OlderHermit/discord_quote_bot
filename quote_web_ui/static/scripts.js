@@ -1,7 +1,7 @@
 let number_of_dialog_fields = 0;
-let possible_authors;
 let data;
 let quote;
+let quotes;
 const runes = [
     'ᚠ', 'ᚡ', 'ᚢ', 'ᚣ', 'ᚤ', 'ᚥ', 'ᚦ', 'ᚧ', 'ᚨ', 'ᚩ', 'ᚪ', 'ᚫ', 'ᚬ', 'ᚭ', 'ᚮ', 'ᚯ',
     'ᚰ', 'ᚱ', 'ᚲ', 'ᚳ', 'ᚴ', 'ᚵ', 'ᚶ', 'ᚷ', 'ᚸ', 'ᚹ', 'ᚺ', 'ᚻ', 'ᚼ', 'ᚽ', 'ᚾ', 'ᚿ',
@@ -20,10 +20,6 @@ const runes_sizes = {
     'ᛰ':9.1
 };
 
-
-function clear_output() {
-    document.getElementById("quote_output").textContent = "";
-}
 
 function clear_input() {
     document.getElementById("explanation").value = "";
@@ -116,7 +112,7 @@ function generate_quote() {
     if (explanation.length <= 1)
         explanation = "----";
 
-    for (i = 0; i < number_of_dialog_fields; i++) {
+    for (let i = 0; i < number_of_dialog_fields; i++) {
         const author = document.getElementById("author" + i);
         quote = document.getElementById("quote" + i);
         if (author.options[author.selectedIndex].text != "-------")
@@ -125,13 +121,12 @@ function generate_quote() {
     if (list.length == 0){
         alert("Can't submit quote without author");
         clear_output();
-        return;
     }
     else if (list.length == 1) {
         quote = `{\n\t"quote": "${list[0][1]}",\n\t"author": "${list[0][0]}",\n\t"date": "${date_string}",\n\t"explanation": "${explanation}"\n}`;
     } else {
-        var base_quote = "";
-        var authors = "";
+        let base_quote = "";
+        let authors = "";
         for (let e of list.filter(([a,q]) => a != "-------")) {
             base_quote += `\t\t"[${e[0]}]${e[1]}",\n`;
             authors += e[0] + ';';
@@ -228,10 +223,59 @@ function generate_background() {
     vw = Math.max(document.documentElement.clientWidth || 0, window.innerWidth || 0);
     vh = Math.max(document.documentElement.clientHeight || 0, window.innerHeight || 0);
 
-    // console.log(`vw: ${vw}  vh: ${vh}`);
     for(let i=0; i < 200; i++){
         let e = generate_rune_for_background(generated);
         document.getElementById("background").appendChild(e);
         generated.push(e.getBoundingClientRect());
     }
+}
+
+async function add_quotes_display() {
+    const response = await fetch('/quotes/nomination', {headers: {'Content-Type': 'application/json'}});
+    if (!response.ok) throw new Error(`Couldn't load quotes: ${response.status}`);
+    quotes = await response.json();
+    let counter = 0;
+
+    for (let i in quotes) {
+        const q = quotes[i];
+        const container = document.getElementById("base");
+        const entry = document.createElement("div");
+        const button_div = document.createElement("div");
+        const accept = document.createElement("input");
+        const discard = document.createElement("input");
+
+        entry.className = "column";
+
+        const text = document.createElement("p")
+        text.textContent = q.quote;
+
+        entry.appendChild(text)
+
+
+        accept.className = "buttons";
+        accept.type = "button";
+        accept.setAttribute('onclick',`approve_quote(${q.id})`);
+        accept.value = "Accept"
+
+        discard.className = "buttons";
+        discard.type = "button";
+        discard.setAttribute('onclick', `discard_quote(${q.id})`);
+        discard.value = "Discard"
+
+        button_div.appendChild(accept);
+        button_div.appendChild(discard);
+        entry.appendChild(button_div);
+
+        //entry.appendChild();
+        container.appendChild(entry);
+        counter++;
+    }
+}
+
+function approve_quote(id){
+
+}
+
+function discard_quote(id){
+    console.log(`discarded ${id}`)
 }
