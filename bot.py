@@ -149,6 +149,7 @@ async def start_server():
     app.add_routes([web.get('/', return_web_page_main)])
     app.add_routes([web.get('/approve', return_web_page_approve)])
     app.add_routes([web.get('/authors', return_authors_data)])
+    app.add_routes([web.get('/quotes/nomination', return_nominations_data)])
     app.router.add_static('/static/', path='quote_web_ui/static', name='static', follow_symlinks=True)
 
     cors = aiohttp_cors.setup(app, defaults={
@@ -221,6 +222,13 @@ async def return_authors_data(request):
     authors = list(map(lambda a: a.id, session.scalars(select(Author)).all()))
     return web.json_response(
         json.dumps(authors, indent=4, ensure_ascii=False)
+    )
+
+
+async def return_nominations_data(request):
+    quotes_to_accept = list(map(lambda q: q.as_dict(), session.scalars(select(Quote).where(Quote.confirmed.is_(False))).all()))
+    return web.json_response(
+        quotes_to_accept
     )
 
 
