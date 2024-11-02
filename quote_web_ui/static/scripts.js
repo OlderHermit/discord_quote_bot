@@ -237,20 +237,30 @@ async function add_quotes_display() {
     let counter = 0;
 
     for (let i in quotes) {
-        const q = quotes[i];
+        const q = quotes[i][0];
         const container = document.getElementById("base");
         const entry = document.createElement("div");
         const button_div = document.createElement("div");
         const accept = document.createElement("input");
         const discard = document.createElement("input");
 
-        entry.className = "column";
+        entry.className = "column_approve";
 
-        const text = document.createElement("p")
-        text.textContent = q.quote;
+        for(let p of q.quote.split("[NEW_SENTENCE]")){
+            const text = document.createElement("p");
+            text.className = "text_approve";
+            p = p.replace("]", ": ");
+            p = p.replace("[", "");
+            text.textContent = p;
 
-        entry.appendChild(text)
+            entry.appendChild(text);
+        }
 
+        //if (q.)
+        const text = document.createElement("p");
+        text.className = "text_approve";
+        text.textContent = quotes[i][1];
+        entry.appendChild(text);
 
         accept.className = "buttons";
         accept.type = "button";
