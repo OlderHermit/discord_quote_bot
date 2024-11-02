@@ -148,6 +148,8 @@ async def start_server():
     app.add_routes([web.post('/', submit_through_web)])
     app.add_routes([web.get('/', return_web_page_main)])
     app.add_routes([web.get('/approve', return_web_page_approve)])
+    app.add_routes([web.post('/approve', approve_through_web)])
+    app.add_routes([web.delete('/approve', delete_through_web)])
     app.add_routes([web.get('/authors', return_authors_data)])
     app.add_routes([web.get('/quotes/nomination', return_nominations_data)])
     app.router.add_static('/static/', path='quote_web_ui/static', name='static', follow_symlinks=True)
@@ -231,6 +233,7 @@ async def return_nominations_data(request):
             select(Quote, func.group_concat(Author.id, ', ').label("authors"))
             .join(Quote.authors)
             .where(Quote.confirmed.is_(False))
+            .where(Quote.deleted.is_(False))
             .group_by(Quote.id)
         ).all()))
     return web.json_response(
@@ -242,19 +245,62 @@ async def submit_through_web(request):
     try:
         data = json.loads((await request.json()))
 
-        validating_member: Member = next((m for m in bot.guilds[0].members if m.id == validating_user), None)
-        if validating_member is None:
-            return web.json_response({'status': 'error', 'message': 'invalid validating pipeline'}, status=500)
+        new_quote = None
+        if type(data['quote']) is not str:
+            new_quote = Quote(
+                quote='[NEW_SENTENCE]'.join(data['quote']),
+                date=data['date'],
+                explanation=data['explanation'],
+                confirmed=True
+            )
+        else:
+            new_quote = Quote(
+                quote=data['quote'],
+                date=data['date'],
+                explanation=data['explanation'],
+                confirmed=True
+            )
+        for a in session.query(Author).filter(Author.id.in_(data['author'].split(';'))).all():
+            new_quote.authors.append(a)
 
-        res = (str(data)
-               .replace(',', ',\n')
-               .replace('{', '{\n')
-               .replace('}', '\n}')
-               .replace('\n', '\n\t')
-               .replace('\'', '\"'))
-        await validating_member.send(res)
+        session.add(new_quote)
+        session.commit()
 
-        return web.json_response({'status': 'success', 'message': 'Command executed'})
+        return web.json_response({'status': 'success', 'message': 'Quote added to DB'})
+    except Exception as e:
+        return web.json_response({'status': 'error', 'message': str(e)}, status=500)
+
+
+async def approve_through_web(request):
+    try:
+        quote_id = json.loads((await request.json()))['id']
+        if quote_id is None:
+            raise ValueError('quote_id colundn\'t be read from request')
+
+        candidate = session.execute(select(Quote).where(Quote.id.is_(quote_id))).scalar_one_or_none()
+        if candidate is None:
+            raise IndexError('There was no quote for given id')
+
+        candidate.confirmed = True
+        session.commit()
+        return web.json_response({'status': 'success', 'message': 'Quote approved'})
+    except Exception as e:
+        return web.json_response({'status': 'error', 'message': str(e)}, status=500)
+
+
+async def delete_through_web(request):
+    try:
+        quote_id = json.loads((await request.json()))['id']
+        if quote_id is None:
+            raise ValueError('quote_id colundn\'t be read from request')
+
+        candidate = session.execute(select(Quote).where(Quote.id.is_(quote_id))).scalar_one_or_none()
+        if candidate is None:
+            raise IndexError('There was no quote for given id')
+
+        candidate.deleted = True
+        session.commit()
+        return web.json_response({'status': 'success', 'message': 'Quote discarded'})
     except Exception as e:
         return web.json_response({'status': 'error', 'message': str(e)}, status=500)
 
