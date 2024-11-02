@@ -136,7 +136,10 @@ async def generate_image(engine: Engine):
     }
 
     session = Session(engine)
-    data = session.query(Quote).options(joinedload(Quote.authors)).filter(Quote.used.is_(False)).all()
+    data = (session.query(Quote).options(joinedload(Quote.authors))
+            .where(Quote.used.is_(False))
+            .where(Quote.deleted.is_(False))
+            .all())
 
     if len(data) == 0:
         # TODO restart data

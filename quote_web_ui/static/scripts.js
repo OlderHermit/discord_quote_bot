@@ -150,7 +150,6 @@ async function send_quote() {
         return;
     
     try {
-        //should be loaded from json?
         const response = await fetch('/', {
             method: 'POST',
             headers: {
@@ -282,10 +281,40 @@ async function add_quotes_display() {
     }
 }
 
-function approve_quote(id){
-
+async function approve_quote(id) {
+    try {
+        const response = await fetch('/approve', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(`{"id":${id}}`),
+        });
+        if (response.ok)
+            if(!alert('Quote successfully Approved'))
+                location.reload();
+        else
+            alert(await response.text());
+    } catch (error) {
+        alert(`There was an server error: ${error}`);
+    }
 }
 
-function discard_quote(id){
-    console.log(`discarded ${id}`)
+async function discard_quote(id){
+    try {
+        const response = await fetch('/approve', {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(`{"id":${id}}`),
+        });
+        if (response.ok)
+            if(!alert('Quote successfully Discarded'))
+                location.reload();
+        else
+            alert(await response.text());
+    } catch (error) {
+        alert(`There was an server error: ${error}`);
+    }
 }

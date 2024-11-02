@@ -55,6 +55,7 @@ class Quote(Base):
 
     confirmed: Mapped[bool] = mapped_column(default=False)
     used: Mapped[bool] = mapped_column(default=False)
+    deleted: Mapped[bool] = mapped_column(default=False)
 
     authors: Mapped[List[Author]] = relationship(secondary=association_table)
 
