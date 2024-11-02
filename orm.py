@@ -41,6 +41,9 @@ class Author(Base):
     def __repr__(self) -> str:
         return f'Author(id={self.id}, signature={self.signature}, color={self.color})'
 
+    def as_dict(self):
+        return {c.name: getattr(self, c.name) for c in self.__table__.columns}
+
 
 class Quote(Base):
     __tablename__ = 'quote'

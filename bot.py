@@ -11,7 +11,7 @@ import aiofiles
 import aiohttp_cors
 import discord
 from aiohttp import web
-from sqlalchemy import create_engine, select, Engine
+from sqlalchemy import create_engine, select, Engine, func
 from sqlalchemy.orm import sessionmaker, Session
 
 import quote_to_image
@@ -226,7 +226,13 @@ async def return_authors_data(request):
 
 
 async def return_nominations_data(request):
-    quotes_to_accept = list(map(lambda q: q.as_dict(), session.scalars(select(Quote).where(Quote.confirmed.is_(False))).all()))
+    quotes_to_accept = list(map(lambda q: (q[0].as_dict(), q[1]),
+        session.execute(
+            select(Quote, func.group_concat(Author.id, ', ').label("authors"))
+            .join(Quote.authors)
+            .where(Quote.confirmed.is_(False))
+            .group_by(Quote.id)
+        ).all()))
     return web.json_response(
         quotes_to_accept
     )
