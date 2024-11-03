@@ -125,6 +125,30 @@ def prepare_dialogue(quote: str, authors: list[Author], width: int, text_positio
     return centered
 
 
+def get_random_quote(engine: Engine):
+    session = Session(engine)
+    data = (session.query(Quote).options(joinedload(Quote.authors))
+            .where(Quote.used.is_(False))
+            .where(Quote.deleted.is_(False))
+            .all())
+
+    if len(data) == 0:
+        reset_used_quotes(session)
+        get_random_quote(engine)
+
+    quote = random.choice([e for e in data])
+    authors = [e for e in quote.authors]
+    return quote, authors
+
+
+def reset_used_quotes(session: Session):
+    quotes = session.execute(select(Quote)).scalars().all()
+    for q in quotes:
+        q.used = False
+    session.commit()
+    session.close()
+
+
 async def generate_image(engine: Engine):
     width = 600
     text_position = (50, 50)
@@ -135,18 +159,7 @@ async def generate_image(engine: Engine):
         "icon": ImageFont.truetype("assets/SEGUIEMJ.ttf", 36),
     }
 
-    session = Session(engine)
-    data = (session.query(Quote).options(joinedload(Quote.authors))
-            .where(Quote.used.is_(False))
-            .where(Quote.deleted.is_(False))
-            .all())
-
-    if len(data) == 0:
-        # TODO restart data
-        pass
-
-    quote = random.choice([e for e in data])
-    authors = [e for e in quote.authors]
+    quote, authors = get_random_quote(engine)
 
     if len(authors) == 1:
         centered = prepare_quote(quote.quote, authors[0], width, text_position, fonts)
@@ -184,6 +197,8 @@ async def generate_image(engine: Engine):
                 begin_color = False
 
     image.save("text_image.png")
+    session = Session(engine)
     quote.used = True
     session.commit()
+    session.close()
     return quote.id
