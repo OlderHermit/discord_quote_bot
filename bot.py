@@ -5,21 +5,18 @@ import math
 import os
 import shutil
 import sqlite3
-import time
+from datetime import datetime, timedelta
 
 import aiofiles
 import aiohttp_cors
 import discord
 from aiohttp import web
-from sqlalchemy import create_engine, select, Engine, func
-from sqlalchemy.orm import sessionmaker, Session
-
-import quote_to_image
-
-from datetime import datetime, timedelta
 from discord import Member
 from discord.ext import commands, tasks
+from sqlalchemy import create_engine, select, Engine, func
+from sqlalchemy.orm import Session
 
+import quote_to_image
 from orm import Config, Base, Quote, Author
 
 # "bot_token": "MTIyNjA5NzEzNDY3NjM0ODk1OQ.GCxcgb.EHZgupFdoiqxKf-AZzIbO7nwvYZWrsdHWwKBOc",
@@ -141,8 +138,6 @@ async def on_member_update(before: Member, after: Member):
 
 
 async def start_server():
-    # TODO CREATE SYNC FUNCTION RUNNING AFTER X TIME UPDATING DB AND STATIC FILES
-
     # start web server
     app = web.Application()
     app.add_routes([web.post('/', submit_through_web)])
