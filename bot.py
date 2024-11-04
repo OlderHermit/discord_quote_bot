@@ -245,14 +245,14 @@ async def submit_through_web(request):
                 quote='[NEW_SENTENCE]'.join(data['quote']),
                 date=data['date'],
                 explanation=data['explanation'],
-                confirmed=True
+                confirmed=False
             )
         else:
             new_quote = Quote(
                 quote=data['quote'],
                 date=data['date'],
                 explanation=data['explanation'],
-                confirmed=True
+                confirmed=False
             )
         for a in session.query(Author).filter(Author.id.in_(data['author'].split(';'))).all():
             new_quote.authors.append(a)
