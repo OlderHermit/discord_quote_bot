@@ -237,6 +237,7 @@ async def return_nominations_data(request):
 
 
 async def submit_through_web(request):
+    print('before before')
     try:
         print('before json access')
         data = json.loads((await request.json()))
@@ -260,8 +261,10 @@ async def submit_through_web(request):
         for a in session.query(Author).filter(Author.id.in_(data['author'].split(';'))).all():
             new_quote.authors.append(a)
 
+        print('before commit')
         session.add(new_quote)
         session.commit()
+        print('after commit')
 
         return web.json_response({'status': 'success', 'message': 'Quote added to DB'})
     except Exception as e:
