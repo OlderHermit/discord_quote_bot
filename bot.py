@@ -238,7 +238,10 @@ async def return_nominations_data(request):
 
 async def submit_through_web(request):
     try:
+        print('before json access')
         data = json.loads((await request.json()))
+        print('after json access')
+        print(data)
 
         if type(data['quote']) is not str:
             new_quote = Quote(

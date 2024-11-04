@@ -123,18 +123,18 @@ function generate_quote() {
         clear_output();
     }
     else if (list.length == 1) {
-        quote = `{\n\t"quote": "${list[0][1]}",\n\t"author": "${list[0][0]}",\n\t"date": "${date_string}",\n\t"explanation": "${explanation}"\n}`;
+        quote = `{"quote": "${list[0][1]}","author": "${list[0][0]}","date": "${date_string}","explanation": "${explanation}"}`;
     } else {
         let base_quote = "";
         let authors = "";
         for (let e of list.filter(([a,q]) => a != "-------")) {
-            base_quote += `\t\t"[${e[0]}]${e[1]}",\n`;
+            base_quote += `"[${e[0]}]${e[1]}",`;
             authors += e[0] + ';';
         }
         base_quote = base_quote.substring(0, base_quote.length - 1);
         authors = authors.substring(0, authors.length - 1);
 
-        quote = `{\n\t"quote": [\n${base_quote}\n\t],\n\t"author": "${authors}",\n\t"date": "${date_string}",\n\t"explanation": "${explanation}"\n}`;
+        quote = `{"quote": [${base_quote}],"author": "${authors}","date": "${date_string}","explanation": "${explanation}"}`;
     }
 }
 
