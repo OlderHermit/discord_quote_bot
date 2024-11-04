@@ -254,8 +254,9 @@ async def submit_through_web(request):
                 explanation=data['explanation'],
                 confirmed=False
             )
-        for a in session.query(Author).filter(Author.id.in_(data['author'].split(';'))).all():
+        for a in session.scalars(select(Author).where(Author.id.in_(data['author'].split(';')))).all():
             new_quote.authors.append(a)
+
 
         session.add(new_quote)
         session.commit()
