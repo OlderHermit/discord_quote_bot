@@ -132,8 +132,8 @@ async def on_member_update(before: Member, after: Member):
                         f"```ansi\n"
                         f"Użytkownik [0;33m{after.name}[0m próbował usunąć karną rolę [0;36m{after.get_role(role_id).name} [1;36mSHAME ON HIM [0mpozostały czas kary: [1;32m{timedelta(seconds=math.ceil((float(data['sentenced'][f'{after.id}']['time'])) - datetime.utcnow().timestamp()))}\n"
                         f"```"
-                        #<t:{math.ceil((float(data['sentenced'][f'{after.id}']['time'])) + time_difference)}:R>
-                        #timedelta(seconds=math.ceil((float(data['sentenced'][f'{after.id}']['time'])) - datetime.utcnow().timestamp()))
+                        # <t:{math.ceil((float(data['sentenced'][f'{after.id}']['time'])) + time_difference)}:R>
+                        # timedelta(seconds=math.ceil((float(data['sentenced'][f'{after.id}']['time'])) - datetime.utcnow().timestamp()))
                     )
 
 
@@ -240,7 +240,6 @@ async def submit_through_web(request):
     try:
         data = json.loads((await request.json()))
 
-        new_quote = None
         if type(data['quote']) is not str:
             new_quote = Quote(
                 quote='[NEW_SENTENCE]'.join(data['quote']),
