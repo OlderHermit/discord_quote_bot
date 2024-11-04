@@ -97,7 +97,7 @@ function generate_quote() {
       "explanation": "----"
     }
     */
-    const list = [];
+    let list = [];
     const date = new Date(document.getElementById("date").value);
     let explanation = document.getElementById("explanation").value;
     let date_string = "";
