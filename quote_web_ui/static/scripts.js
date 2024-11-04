@@ -146,7 +146,6 @@ function click_press(event) {
 }
 
 async function send_quote() {
-    console.log(quote);
     if (quote == null)
         if(!alert('Quote not generated correctly'))
         return;
