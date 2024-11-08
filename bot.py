@@ -72,15 +72,14 @@ async def quote(interactions):
 
 @bot.tree.command(name='explain', description='Dodatkowe informacje \"lore\" ostatniej wypowiedzi')
 async def explain(interactions):
-
-    if config.last_quote_id is not None:
+    res = session.scalars(select(Quote).where(Quote.id.is_(config.last_quote_id))).one_or_none()
+    if res is None:
         await interactions.response.send_message(
             "No quote response to send", ephemeral=True
         )
         return
     await interactions.response.send_message(
-        session.scalars(select(Quote).where(Quote.id == config.last_quote_id)).one()
-        .explanation,
+        res.explanation,
         ephemeral=True
     )
 
