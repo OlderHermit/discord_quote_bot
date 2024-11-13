@@ -159,7 +159,8 @@ async function send_quote() {
             body: JSON.stringify(quote),
         });
         if (response.ok)
-            alert('Quote successfully Added')
+            if(!alert('Quote successfully Added'))
+                location.reload();
         else
             alert(response.text())
     } catch (error) {

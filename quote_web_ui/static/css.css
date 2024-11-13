@@ -7,11 +7,18 @@
     align-items: center;
     justify-content: center;
     flex-direction: column;
-    background-color: #fdf5e6;
+    background-image: url("quote_background.jpg"), url('quote_texture.jpeg');
+    background-size: 100%, cover;
+    background-position: top, center;
+    background-repeat: no-repeat, repeat;
+    background-blend-mode: multiply;
+    filter: brightness(160%);
     box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
     border-radius: 5px;
     transition: 0.3s;
     margin-top: 1em;
+    padding: 30px;
+    padding-top: 130px;
 }
 
 .column_approve {
@@ -50,9 +57,13 @@ body {
     height: 100vh;
     display: flex;
     justify-content: center;
-    background-color: #e2d2b4;
+    /*background-color: #e2d2b4;*/
+    background-color: #ffe4b2;
     overflow-x: hidden;
     align-items: center;
+    background-image: url('main_texture.jpeg');
+    background-size: auto;
+    background-blend-mode: multiply;
 }
 
 .quote {
