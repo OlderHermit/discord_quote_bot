@@ -174,3 +174,5 @@ nohup.out
 /quote_web_ui/static/quotes.json
 /quote_web_ui/static/authors.json
 /.idea/dataSources.xml
+#droping jsons
+/jsons/

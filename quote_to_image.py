@@ -1,18 +1,13 @@
-import json
 import math
-import os.path
 import random
 import re
 
-import aiofiles
-import regex
-import sqlalchemy
 from PIL import Image, ImageDraw, ImageFont
 from PIL.ImageFont import FreeTypeFont
 from sqlalchemy import Engine, select
 from sqlalchemy.orm import Session, joinedload
 
-from orm import Quote, Color, Author
+from orm import Quote, Author
 
 default_font_color = (255, 255, 255)
 
@@ -170,7 +165,6 @@ async def generate_image(engine: Engine):
     draw = ImageDraw.Draw(image)
 
     for j, pair in enumerate(centered):
-        print(pair)
         line, color = pair
         begin_color = False
         x = text_position[0]
