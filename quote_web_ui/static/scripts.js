@@ -27,6 +27,9 @@ function clear_input() {
 }
 
 async function add_field() {
+    if(number_of_dialog_fields > 7)
+        return;
+
     const container = document.getElementById("dialog");
     const line = document.createElement("tr");
     const author = document.createElement("select");
