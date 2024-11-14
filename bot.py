@@ -93,8 +93,8 @@ async def submit(interactions):
 
 @bot.event
 async def on_member_update(before: Member, after: Member):
-    role_id = 1236360986970161283  # 1225828166497730741
-    channel_id_to_shame = 1226101153129955382
+    role_id = 1225828166497730741 # 1236360986970161283
+    channel_id_to_shame = 368439253794947084
 
     if before.get_role(role_id) is None:
         if after.get_role(role_id) is not None:
