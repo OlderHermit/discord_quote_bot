@@ -1,6 +1,7 @@
 let number_of_dialog_fields = 0;
-let possible_authors;
 let data;
+let quote;
+let quotes;
 const runes = [
     'ᚠ', 'ᚡ', 'ᚢ', 'ᚣ', 'ᚤ', 'ᚥ', 'ᚦ', 'ᚧ', 'ᚨ', 'ᚩ', 'ᚪ', 'ᚫ', 'ᚬ', 'ᚭ', 'ᚮ', 'ᚯ',
     'ᚰ', 'ᚱ', 'ᚲ', 'ᚳ', 'ᚴ', 'ᚵ', 'ᚶ', 'ᚷ', 'ᚸ', 'ᚹ', 'ᚺ', 'ᚻ', 'ᚼ', 'ᚽ', 'ᚾ', 'ᚿ',
@@ -19,21 +20,16 @@ const runes_sizes = {
     'ᛰ':9.1
 };
 
-readTextFile("static/authors.json", function (text) {
-    data = JSON.parse(text);
-    add_field();
-});
-
-function clear_output() {
-    document.getElementById("quote_output").textContent = "";
-}
 
 function clear_input() {
     document.getElementById("explanation").value = "";
     document.getElementById("date").value = "";
 }
 
-function add_field() {
+async function add_field() {
+    if(number_of_dialog_fields > 7)
+        return;
+
     const container = document.getElementById("dialog");
     const line = document.createElement("tr");
     const author = document.createElement("select");
@@ -50,10 +46,17 @@ function add_field() {
     option.setAttribute("selected", "");
     author.options.add(option);
 
-    for (let e of Object.entries(data).map(([k, v]) => v).sort((l, p) => l['author'] > p['author'])) {
+    if (data == null) {
+        const response = await fetch('/authors', {headers: {'Content-Type': 'application/json'}});
+        if (!response.ok) throw new Error(`Couldn't load authors: ${response.status}`);
+        data = JSON.parse(await response.json());
+    }
+
+
+    for (let e of data.sort()) {
         option = document.createElement("option");
-        option.value = e['author'];
-        option.text = e['author'];
+        option.value = e;
+        option.text = e;
         option.className = "option";
         //option.style = "color: rgb(" + e['color'].replace(/ /g, ", ") + ");"
         author.options.add(option);
@@ -75,7 +78,7 @@ function add_field() {
     td.appendChild(input);
     line.appendChild(td);
     container.appendChild(line)
-    
+
     number_of_dialog_fields++;
 }
 
@@ -97,8 +100,7 @@ function generate_quote() {
       "explanation": "----"
     }
     */
-    const list = [];
-    let quote = "";
+    let list = [];
     const date = new Date(document.getElementById("date").value);
     let explanation = document.getElementById("explanation").value;
     let date_string = "";
@@ -113,7 +115,7 @@ function generate_quote() {
     if (explanation.length <= 1)
         explanation = "----";
 
-    for (i = 0; i < number_of_dialog_fields; i++) {
+    for (let i = 0; i < number_of_dialog_fields; i++) {
         const author = document.getElementById("author" + i);
         quote = document.getElementById("quote" + i);
         if (author.options[author.selectedIndex].text != "-------")
@@ -122,35 +124,21 @@ function generate_quote() {
     if (list.length == 0){
         alert("Can't submit quote without author");
         clear_output();
-        return;
     }
     else if (list.length == 1) {
-        quote = `{\n\t"quote": "${list[0][1]}",\n\t"author": "${list[0][0]}",\n\t"date": "${date_string}",\n\t"explanation": "${explanation}"\n}`;
+        quote = `{"quote": "${list[0][1]}","author": "${list[0][0]}","date": "${date_string}","explanation": "${explanation}"}`;
     } else {
-        var base_quote = "";
-        var authors = "";
+        let base_quote = "";
+        let authors = "";
         for (let e of list.filter(([a,q]) => a != "-------")) {
-            base_quote += `\t\t"[${e[0]}]${e[1]}",\n`;
+            base_quote += `"[${e[0]}]${e[1]}",`;
             authors += e[0] + ';';
         }
         base_quote = base_quote.substring(0, base_quote.length - 1);
         authors = authors.substring(0, authors.length - 1);
 
-        quote = `{\n\t"quote": [\n${base_quote}\n\t],\n\t"author": "${authors}",\n\t"date": "${date_string}",\n\t"explanation": "${explanation}"\n}`;
+        quote = `{"quote": [${base_quote}],"author": "${authors}","date": "${date_string}","explanation": "${explanation}"}`;
     }
-    document.getElementById("quote_output").value = quote;
-}
-
-function readTextFile(file, callback) {
-    var rawFile = new XMLHttpRequest();
-    rawFile.overrideMimeType("application/json");
-    rawFile.open("GET", file, true);
-    rawFile.onreadystatechange = function () {
-        if (rawFile.readyState === 4 && rawFile.status == "200") {
-            callback(rawFile.responseText);
-        }
-    }
-    rawFile.send(null);
 }
 
 function click_press(event) {
@@ -160,25 +148,28 @@ function click_press(event) {
     }
 }
 
-async function triggerCommand() {
-    const data = document.getElementById('quote_output').value;
-    if (data == "")
+async function send_quote() {
+    if (quote == null)
+        if(!alert('Quote not generated correctly'))
         return;
     
     try {
-        //should be loaded from json?
-        const response = await fetch('http://172.27.27.2:8000', {
+        const response = await fetch('/', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify(data),
+            body: JSON.stringify(quote),
         });
-
-        alert('Quote successfully Added')
+        if (response.ok)
+            if(!alert('Quote successfully Added'))
+                location.reload();
+        else
+            alert(response.text())
     } catch (error) {
         alert(`There was an server error: ${error}`)
     }
+    quote = null;
 }
 
 function generate_rune_for_background(list) {
@@ -203,7 +194,7 @@ function generate_rune_for_background(list) {
         rune.appendChild(character);
     }
 
-    var retry_counter = 50;
+    let retry_counter = 50;
     // console.log(`try have already saved ${list.length}`);
     // console.log(list.filter(e => Math.abs(e.top - y*vh/100) <= 16).length);
     // console.log(list.filter(e => Math.abs(e.top - y*vh/100) <= 16).filter(e => e.left < x*vw/100 && vw - e.right > x*vw/100).length);
@@ -219,7 +210,7 @@ function generate_rune_for_background(list) {
         retry_counter--;
     }
 
-    if (retry_counter == 0){
+    if (retry_counter <= 0){
         x = 0;
         y = 0;
         rune = document.createElement("div");
@@ -236,10 +227,99 @@ function generate_background() {
     vw = Math.max(document.documentElement.clientWidth || 0, window.innerWidth || 0);
     vh = Math.max(document.documentElement.clientHeight || 0, window.innerHeight || 0);
 
-    // console.log(`vw: ${vw}  vh: ${vh}`);
     for(let i=0; i < 200; i++){
         let e = generate_rune_for_background(generated);
         document.getElementById("background").appendChild(e);
         generated.push(e.getBoundingClientRect());
+    }
+}
+
+async function add_quotes_display() {
+    const response = await fetch('/quotes/nomination', {headers: {'Content-Type': 'application/json'}});
+    if (!response.ok) throw new Error(`Couldn't load quotes: ${response.status}`);
+    quotes = await response.json();
+    let counter = 0;
+
+    for (let i in quotes) {
+        const q = quotes[i][0];
+        const container = document.getElementById("base");
+        const entry = document.createElement("div");
+        const button_div = document.createElement("div");
+        const accept = document.createElement("input");
+        const discard = document.createElement("input");
+
+        entry.className = "column_approve";
+
+        for(let p of q.quote.split("[NEW_SENTENCE]")){
+            const text = document.createElement("p");
+            text.className = "text_approve";
+            p = p.replace("]", ": ");
+            p = p.replace("[", "");
+            text.textContent = p;
+
+            entry.appendChild(text);
+        }
+
+        //if (q.)
+        const text = document.createElement("p");
+        text.className = "text_approve";
+        text.textContent = quotes[i][1];
+        entry.appendChild(text);
+
+        accept.className = "buttons";
+        accept.type = "button";
+        accept.setAttribute('onclick',`approve_quote(${q.id})`);
+        accept.value = "Accept"
+
+        discard.className = "buttons";
+        discard.type = "button";
+        discard.setAttribute('onclick', `discard_quote(${q.id})`);
+        discard.value = "Discard"
+
+        button_div.appendChild(accept);
+        button_div.appendChild(discard);
+        entry.appendChild(button_div);
+
+        //entry.appendChild();
+        container.appendChild(entry);
+        counter++;
+    }
+}
+
+async function approve_quote(id) {
+    try {
+        const response = await fetch('/approve', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(`{"id":${id}}`),
+        });
+        if (response.ok)
+            if(!alert('Quote successfully Approved'))
+                location.reload();
+        else
+            alert(await response.text());
+    } catch (error) {
+        alert(`There was an server error: ${error}`);
+    }
+}
+
+async function discard_quote(id){
+    try {
+        const response = await fetch('/approve', {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(`{"id":${id}}`),
+        });
+        if (response.ok)
+            if(!alert('Quote successfully Discarded'))
+                location.reload();
+        else
+            alert(await response.text());
+    } catch (error) {
+        alert(`There was an server error: ${error}`);
     }
 }

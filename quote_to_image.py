@@ -1,13 +1,13 @@
-import json
 import math
-import os.path
 import random
 import re
 
-import aiofiles
-import regex
 from PIL import Image, ImageDraw, ImageFont
 from PIL.ImageFont import FreeTypeFont
+from sqlalchemy import Engine, select
+from sqlalchemy.orm import Session, joinedload
+
+from orm import Quote, Author
 
 default_font_color = (255, 255, 255)
 
@@ -42,12 +42,12 @@ def split_to_size(text: str, maxsize: int, check_font: ImageFont):
     return result
 
 
-def split_to_size_dialogue(dialogue: list[str], maxsize: int, check_font: ImageFont, authors):
+def split_to_size_dialogue(dialogue: list[str], maxsize: int, check_font: ImageFont, authors: list[Author]):
     author_offset = 5
     longest_size = 0
     result = []
     space_width = check_size(' ', check_font)
-    spaces_equal_longest_author = math.ceil(max([check_size(author['author']+':', check_font) for author in authors])/space_width)
+    spaces_equal_longest_author = math.ceil(max([check_size(author.id+':', check_font) for author in authors])/space_width)
     dialogue = [e.replace('[', '') for e in dialogue]
     dialogue = [e.replace(']', ': ') for e in dialogue]
 
@@ -57,12 +57,7 @@ def split_to_size_dialogue(dialogue: list[str], maxsize: int, check_font: ImageF
 
         author = text[:text.find(':')+1]
         text = text[len(author):]
-        color = [x['color'] for x in authors if x['author'] == author[:-1]]
-
-        if len(color) == 0:
-            color = default_font_color
-        else:
-            color = tuple([int(s) for s in color[0].split(' ')])
+        color = [(x.color.red, x.color.green, x.color.blue) for x in authors if x.id == author[:-1]][0]
 
         spaces_equal_author = math.ceil(check_size(author, check_font) / space_width)
         combined_size = (check_size(author, check_font) + (spaces_equal_longest_author - spaces_equal_author + author_offset) * space_width)
@@ -108,98 +103,101 @@ def generate_separator(longest_size: int, check_font: ImageFont):
     return '-'*seps
 
 
-def roll_quote(data, used):
-    picks = list(range(0, len(data['quotes']), 1))
-    for e in sorted(used['used_quotes'].keys()):
-        picks.remove(int(e))
-    if len(picks) == 0:
-        used['used_quotes'].clear()
-        picks = list(range(0, len(data['quotes']), 1))
-
-    return random.choice(picks), used
-
-
-def prepare_quote(data, quote, width: int, text_position: tuple[int, int], fonts: dict[str, FreeTypeFont]):
-    authors = [data['authors'][author] for author in quote['author'].split(';')]
-
-    centered = split_to_size(quote['quote'], width - text_position[0] * 2, fonts['base'])
-    # noinspection PyTypeChecker
-    centered.extend([
-        (center(author['signature'], width - text_position[0] * 2, fonts['base'], fonts['icon']), tuple([int(s) for s in author['color'].split(' ')])) for author in authors
-    ])
+def prepare_quote(quote: str, author: Author, width: int, text_position: tuple[int, int], fonts: dict[str, FreeTypeFont]):
+    centered = split_to_size(quote, width - text_position[0] * 2, fonts['base'])
+    centered.append(
+        (center(author.signature, width - text_position[0] * 2, fonts['base'], fonts['icon']), (author.color.red, author.color.green, author.color.blue))
+    )
     return centered
 
 
-def prepare_dialogue(data, quote, width: int, text_position: tuple[int, int], fonts: dict[str, FreeTypeFont]):
-    authors = [data['authors'][author] for author in quote['author'].split(';')]
-
-    centered = split_to_size_dialogue(quote['quote'], width - text_position[0] * 2, fonts['base'], authors)
-    centered.extend([
-        (center(author['signature'], width - text_position[0] * 2, fonts['base'], fonts['icon']), tuple([int(s) for s in author['color'].split(' ')])) for author in authors
-    ])
+def prepare_dialogue(quote: str, authors: list[Author], width: int, text_position: tuple[int, int], fonts: dict[str, FreeTypeFont]):
+    centered = split_to_size_dialogue(quote.split('[NEW_SENTENCE]'), width - text_position[0] * 2, fonts['base'], authors)
+    for author in authors:
+        centered.append(
+            (center(author.signature, width - text_position[0] * 2, fonts['base'], fonts['icon']), (author.color.red, author.color.green, author.color.blue))
+        )
     return centered
 
 
-async def generate_image():
-    width = 600
-    text_position = (50, 50)
-    text_color = (255, 255, 255)
+def get_random_quote(session: Session):
+    data = (session.query(Quote).options(joinedload(Quote.authors))
+            .where(Quote.used.is_(False))
+            .where(Quote.deleted.is_(False))
+            .all())
 
-    fonts = {
-        "base": ImageFont.truetype("assets/Jaini-Regular.ttf", 36),
-        "icon": ImageFont.truetype("assets/SEGUIEMJ.ttf", 36),
-    }
+    if len(data) == 0:
+        reset_used_quotes(session)
+        return get_random_quote(session)
 
-    quotes_file = await aiofiles.open("jsons/quotes.json", encoding='UTF-8')
-    data = json.loads(await quotes_file.read())
-    if not os.path.exists('jsons/used.json'):
-        async with aiofiles.open("jsons/used.json", mode='w+', encoding='UTF-8') as used_file:
-            await used_file.write('{"used_quotes" : {}}')
-    used_file = await aiofiles.open("jsons/used.json", mode='r+', encoding='UTF-8')
-    used = json.loads(await used_file.read())
+    quote = random.choice(data)
+    authors = list(quote.authors)
+    return quote, authors
 
-    index, used = roll_quote(data, used)
-    quote = data['quotes'][index]
-    authors = [data['authors'][author] for author in quote['author'].split(';')]
 
-    if isinstance(quote['quote'], str):
-        centered = prepare_quote(data, quote, width, text_position, fonts)
-    else:
-        centered = prepare_dialogue(data, quote, width, text_position, fonts)
+def reset_used_quotes(session: Session):
+    quotes = session.execute(select(Quote)).scalars().all()
+    for q in quotes:
+        q.used = False
+    session.commit()
+    session.close()
 
-    image = Image.new("RGB", (width, 100 + 50 * len(centered)), (0x27, 0x29, 0x2E))
-    draw = ImageDraw.Draw(image)
 
-    for j, pair in enumerate(centered):
-        line, color = pair
-        color_copy = color
-        begin_color = False
-        x = text_position[0]
-        y = text_position[1] * (j + 1)
-        if j >= len(centered) - len(authors):
-            y -= 10
-        if re.search("^\\w+( \\w+)*:", line) or any([x for x in line if ord(x) > 512]):
-            begin_color = True
+async def generate_image(engine: Engine):
+    session = Session(engine)
+    try:
+        width = 600
+        text_position = (50, 50)
+        text_color = (255, 255, 255)
+
+        fonts = {
+            "base": ImageFont.truetype("assets/Jaini-Regular.ttf", 36),
+            "icon": ImageFont.truetype("assets/SEGUIEMJ.ttf", 36),
+        }
+
+        quote, authors = get_random_quote(session)
+
+        if len(authors) == 1:
+            centered = prepare_quote(quote.quote, authors[0], width, text_position, fonts)
         else:
-            color = (255, 255, 255)
+            centered = prepare_dialogue(quote.quote, authors, width, text_position, fonts)
 
-        for i, char in enumerate(line):
-            font = fonts['base']
-            if ord(char) > 512:
-                font = fonts['icon']
-            char_width = draw.textlength(char, font=font)
-            if font == fonts['icon']:
-                draw.text((x, y + 10), char, fill=text_color, font=font, embedded_color=True)
+        image = Image.new("RGB", (width, 100 + 50 * len(centered)), (0x27, 0x29, 0x2E))
+        draw = ImageDraw.Draw(image)
+
+        for j, pair in enumerate(centered):
+            line, color = pair
+            begin_color = False
+            x = text_position[0]
+            y = text_position[1] * (j + 1)
+            if j >= len(centered) - len(authors):
+                y -= 10
+            if re.search("^\\w+( \\w+)*:", line) or any([x for x in line if ord(x) > 512]):
+                begin_color = True
             else:
-                draw.text((x, y), char, fill=color, font=font, embedded_color=True)
-            x += char_width
-            if begin_color and char == ':':
                 color = (255, 255, 255)
-                begin_color = False
 
-    image.save("text_image.png")
-    used['used_quotes'].update({f"{index}": {"quote": f"{quote['quote']}"}})
-    await used_file.seek(0)
-    await used_file.writelines(json.dumps(used, indent=4, ensure_ascii=False))
-    await used_file.close()
-    await quotes_file.close()
+            for i, char in enumerate(line):
+                font = fonts['base']
+                if ord(char) > 512:
+                    font = fonts['icon']
+                char_width = draw.textlength(char, font=font)
+                if font == fonts['icon']:
+                    draw.text((x, y + 10), char, fill=text_color, font=font, embedded_color=True)
+                else:
+                    draw.text((x, y), char, fill=color, font=font, embedded_color=True)
+                x += char_width
+                if begin_color and char == ':':
+                    color = (255, 255, 255)
+                    begin_color = False
+
+        image.save("text_image.png")
+
+        quote.used = True
+        session.commit()
+        return quote.id
+    except Exception as e:
+        session.rollback()
+        raise e
+    finally:
+        session.close()
