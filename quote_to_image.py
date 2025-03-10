@@ -120,8 +120,7 @@ def prepare_dialogue(quote: str, authors: list[Author], width: int, text_positio
     return centered
 
 
-def get_random_quote(engine: Engine):
-    session = Session(engine)
+def get_random_quote(session: Session):
     data = (session.query(Quote).options(joinedload(Quote.authors))
             .where(Quote.used.is_(False))
             .where(Quote.deleted.is_(False))
@@ -129,10 +128,10 @@ def get_random_quote(engine: Engine):
 
     if len(data) == 0:
         reset_used_quotes(session)
-        get_random_quote(engine)
+        return get_random_quote(session)
 
-    quote = random.choice([e for e in data])
-    authors = [e for e in quote.authors]
+    quote = random.choice(data)
+    authors = list(quote.authors)
     return quote, authors
 
 
@@ -145,54 +144,60 @@ def reset_used_quotes(session: Session):
 
 
 async def generate_image(engine: Engine):
-    width = 600
-    text_position = (50, 50)
-    text_color = (255, 255, 255)
-
-    fonts = {
-        "base": ImageFont.truetype("assets/Jaini-Regular.ttf", 36),
-        "icon": ImageFont.truetype("assets/SEGUIEMJ.ttf", 36),
-    }
-
-    quote, authors = get_random_quote(engine)
-
-    if len(authors) == 1:
-        centered = prepare_quote(quote.quote, authors[0], width, text_position, fonts)
-    else:
-        centered = prepare_dialogue(quote.quote, authors, width, text_position, fonts)
-
-    image = Image.new("RGB", (width, 100 + 50 * len(centered)), (0x27, 0x29, 0x2E))
-    draw = ImageDraw.Draw(image)
-
-    for j, pair in enumerate(centered):
-        line, color = pair
-        begin_color = False
-        x = text_position[0]
-        y = text_position[1] * (j + 1)
-        if j >= len(centered) - len(authors):
-            y -= 10
-        if re.search("^\\w+( \\w+)*:", line) or any([x for x in line if ord(x) > 512]):
-            begin_color = True
-        else:
-            color = (255, 255, 255)
-
-        for i, char in enumerate(line):
-            font = fonts['base']
-            if ord(char) > 512:
-                font = fonts['icon']
-            char_width = draw.textlength(char, font=font)
-            if font == fonts['icon']:
-                draw.text((x, y + 10), char, fill=text_color, font=font, embedded_color=True)
-            else:
-                draw.text((x, y), char, fill=color, font=font, embedded_color=True)
-            x += char_width
-            if begin_color and char == ':':
-                color = (255, 255, 255)
-                begin_color = False
-
-    image.save("text_image.png")
     session = Session(engine)
-    quote.used = True
-    session.commit()
-    session.close()
-    return quote.id
+    try:
+        width = 600
+        text_position = (50, 50)
+        text_color = (255, 255, 255)
+
+        fonts = {
+            "base": ImageFont.truetype("assets/Jaini-Regular.ttf", 36),
+            "icon": ImageFont.truetype("assets/SEGUIEMJ.ttf", 36),
+        }
+
+        quote, authors = get_random_quote(session)
+
+        if len(authors) == 1:
+            centered = prepare_quote(quote.quote, authors[0], width, text_position, fonts)
+        else:
+            centered = prepare_dialogue(quote.quote, authors, width, text_position, fonts)
+
+        image = Image.new("RGB", (width, 100 + 50 * len(centered)), (0x27, 0x29, 0x2E))
+        draw = ImageDraw.Draw(image)
+
+        for j, pair in enumerate(centered):
+            line, color = pair
+            begin_color = False
+            x = text_position[0]
+            y = text_position[1] * (j + 1)
+            if j >= len(centered) - len(authors):
+                y -= 10
+            if re.search("^\\w+( \\w+)*:", line) or any([x for x in line if ord(x) > 512]):
+                begin_color = True
+            else:
+                color = (255, 255, 255)
+
+            for i, char in enumerate(line):
+                font = fonts['base']
+                if ord(char) > 512:
+                    font = fonts['icon']
+                char_width = draw.textlength(char, font=font)
+                if font == fonts['icon']:
+                    draw.text((x, y + 10), char, fill=text_color, font=font, embedded_color=True)
+                else:
+                    draw.text((x, y), char, fill=color, font=font, embedded_color=True)
+                x += char_width
+                if begin_color and char == ':':
+                    color = (255, 255, 255)
+                    begin_color = False
+
+        image.save("text_image.png")
+
+        quote.used = True
+        session.commit()
+        return quote.id
+    except Exception as e:
+        session.rollback()
+        raise e
+    finally:
+        session.close()
