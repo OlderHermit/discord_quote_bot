@@ -87,6 +87,7 @@ body {
 .buttons {
     margin: 1em;
     font-size: large;
+
 }
 
 .table {
@@ -139,4 +140,48 @@ body {
     100% {
         opacity: 0;
     }
+}
+
+td {
+    font-family: 'Georgia', serif;
+    color: #040704;
+}
+
+input, select, button, select {
+    font-family: 'Georgia', serif;
+    padding: 8px 12px;
+    margin: 5px;
+    border: 2px solid #573c22;
+    border-radius: 6px;
+    background-color: #f5ecd9; /* parchment-like color */
+    color: #040704;
+    box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.1),
+                0 0 8px rgba(139, 94, 60, 0.2);
+    transition: all 0.2s ease-in-out;
+}
+
+input:hover, select:hover, button:hover, select:hover,
+input:focus, select:focus, button:focus, select:focus {
+    background-color: #f0e2c4;
+    border-color: #a67c52;
+    outline: none;
+}
+
+input, select, button {
+    cursor: pointer;
+    background: linear-gradient(to bottom, #d9c8a9, #c2a982);
+    font-weight: bold;
+}
+
+/* On click effect */
+.buttons:active {
+    background: #bfa374;
+    transform: scale(0.98);
+}
+
+select option {
+    background-color: #f5ecd9;  /* parchment-like */
+    color: #040704;
+    font-family: 'Georgia', serif;
+    font-size: 16px;
 }
