@@ -7,7 +7,7 @@ import secrets
 import shutil
 import sqlite3
 import time
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 import aiofiles
 import aiohttp_cors
@@ -63,7 +63,7 @@ async def on_ready():
 async def quote(interactions):
     load_config()
     last_quote_time = config.last_used.timetuple()[0:3]
-    today = datetime.utcnow().timetuple()[0:3]
+    today = datetime.now(timezone.utc).timetuple()[0:3]
     if today <= last_quote_time:
         await interactions.response.send_message(
             file=discord.File('text_image.png', 'Mądrość dnia.png')
@@ -76,7 +76,7 @@ async def quote(interactions):
         file=discord.File('text_image.png', 'Mądrość dnia.png')
     )
 
-    config.last_used = datetime.utcnow()
+    config.last_used = datetime.now(timezone.utc)
     config.last_quote_id = q_id
     session.commit()
 
@@ -98,7 +98,7 @@ async def explain(interactions):
 @bot.tree.command(name='submit', description='Możliwość dodania własnego cytatu')
 async def submit(interactions):
     await interactions.response.send_message(
-        f"Functionality moved to here http://{config.address}:{config.port}", ephemeral=True, delete_after=60
+        f"Password: \"{os.getenv('USER_PASS')}\"\nFunctionality moved to here http://{config.address}:{config.port}", ephemeral=True, delete_after=60
     )
 
 
@@ -115,7 +115,7 @@ async def on_member_update(before: Member, after: Member):
                     data['sentenced'].update({
                         f'{after.id}': {
                             'name': f'{after.name}',
-                            'time': f'{(datetime.utcnow() + timedelta(seconds=5)).timestamp()}'
+                            'time': f'{(datetime.now(timezone.utc) + timedelta(seconds=5)).timestamp()}'
                         }
                     })
                     await file.seek(0)
@@ -126,7 +126,7 @@ async def on_member_update(before: Member, after: Member):
             async with aiofiles.open("jsons/punishments.json", mode='w+', encoding='UTF-8') as file:
                 data = json.loads(await file.read())
                 if data['sentenced'].get(f'{after.id}') is not None and float(
-                        data['sentenced'].get(f'{after.id}')['time']) < datetime.utcnow().timestamp():
+                        data['sentenced'].get(f'{after.id}')['time']) < datetime.now(timezone.utc).timestamp():
                     data['sentenced'].pop(f'{after.id}')
                     await file.seek(0)
                     await file.writelines(json.dumps(data, indent=4, ensure_ascii=False))
@@ -136,11 +136,11 @@ async def on_member_update(before: Member, after: Member):
                         f"```"
                     )
                 else:
-                    time_difference = (datetime.now() - datetime.utcnow()).total_seconds()
+                    time_difference = (datetime.now() - datetime.now(timezone.utc)).total_seconds()
                     await after.add_roles(before.get_role(role_id))
                     await after.guild.get_channel(channel_id_to_shame).send(
                         f"```ansi\n"
-                        f"Użytkownik [0;33m{after.name}[0m próbował usunąć karną rolę [0;36m{after.get_role(role_id).name} [1;36mSHAME ON HIM [0mpozostały czas kary: [1;32m{timedelta(seconds=math.ceil((float(data['sentenced'][f'{after.id}']['time'])) - datetime.utcnow().timestamp()))}\n"
+                        f"Użytkownik [0;33m{after.name}[0m próbował usunąć karną rolę [0;36m{after.get_role(role_id).name} [1;36mSHAME ON HIM [0mpozostały czas kary: [1;32m{timedelta(seconds=math.ceil((float(data['sentenced'][f'{after.id}']['time'])) - datetime.now(timezone.utc).timestamp()))}\n"
                         f"```"
                         # <t:{math.ceil((float(data['sentenced'][f'{after.id}']['time'])) + time_difference)}:R>
                         # timedelta(seconds=math.ceil((float(data['sentenced'][f'{after.id}']['time'])) - datetime.utcnow().timestamp()))
@@ -180,7 +180,7 @@ async def start_server():
 
     runner = web.AppRunner(app)
     await runner.setup()
-    site = web.TCPSite(runner, '::', int(config.port))
+    site = web.TCPSite(runner, config.address, int(config.port))
     await site.start()
     print("website is on")
 
