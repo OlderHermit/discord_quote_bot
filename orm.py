@@ -1,8 +1,8 @@
 from datetime import datetime
 from typing import List
 
-from sqlalchemy import ForeignKey, String, Table, Column, CheckConstraint, TypeDecorator, Integer
-from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
+from sqlalchemy import ForeignKey, String, Table, Column, CheckConstraint, TypeDecorator, Integer, select
+from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship, Session
 
 
 class Base(DeclarativeBase):
@@ -91,8 +91,18 @@ class Config(Base):
     bot_token: Mapped[str]
     address: Mapped[str]
     port: Mapped[str]
+    max_login_attempts: Mapped[int]
+    login_failed_timeout: Mapped[int]  # in seconds
+    login_session_time: Mapped[int]  # in seconds
     last_used: Mapped[datetime] = mapped_column(Timestamp)
     last_quote_id: Mapped[int] = mapped_column(ForeignKey('quote.id'), nullable=True)
 
     def __repr__(self) -> str:
         return f'Config(id={self.id}, token=secret last 5 characters{self.bot_token[-5:]}, adress={self.address}:{self.port}, last_used={self.last_used}'
+
+
+class PagePassword(Base):
+    __tablename__ = 'page_passwords'
+
+    page: Mapped[str] = mapped_column(primary_key=True)
+    hash: Mapped[str]

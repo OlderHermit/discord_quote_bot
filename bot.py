@@ -3,21 +3,28 @@ import datetime
 import json
 import math
 import os
+import secrets
 import shutil
 import sqlite3
+import time
 from datetime import datetime, timedelta
 
 import aiofiles
 import aiohttp_cors
+import aiohttp_jinja2
+import bcrypt
 import discord
+import jinja2
 from aiohttp import web
+from cryptography.fernet import Fernet
 from discord import Member
 from discord.ext import commands, tasks
+from dotenv import load_dotenv
 from sqlalchemy import create_engine, select, Engine, func
 from sqlalchemy.orm import Session
 
 import quote_to_image
-from orm import Config, Base, Quote, Author
+from orm import Config, Base, Quote, Author, PagePassword
 
 # "bot_token": "redacted",
 # "bot_token_test": "redacted"
@@ -28,11 +35,15 @@ intents.message_content = True
 
 bot = commands.Bot(command_prefix=';', intents=discord.Intents.all())
 
+active_sessions = {}
+failed_login_attempts = {}
+
 lock_playing_state = asyncio.Lock()
 path_to_db = 'quotes.db'
 session: Session = None
 engine: Engine = None
 config: Config = None
+cipher_suite: Fernet = None
 
 
 @bot.event
@@ -137,16 +148,24 @@ async def on_member_update(before: Member, after: Member):
 
 
 async def start_server():
-    # start web server
     app = web.Application()
-    app.add_routes([web.post('/', submit_through_web)])
-    app.add_routes([web.get('/', return_web_page_main)])
-    app.add_routes([web.get('/approve', return_web_page_approve)])
-    app.add_routes([web.post('/approve', approve_through_web)])
-    app.add_routes([web.delete('/approve', delete_through_web)])
-    app.add_routes([web.get('/authors', return_authors_data)])
-    app.add_routes([web.get('/quotes/nomination', return_nominations_data)])
+    aiohttp_jinja2.setup(app, loader=jinja2.FileSystemLoader("quote_web_ui"))
+
+    app.add_routes([
+        web.post('/', submit_through_web),
+        web.get('/', redirectToIndex),
+        web.get('/index', return_web_page_main),
+        web.get('/approve', return_web_page_approve),
+        web.post('/approve', approve_through_web),
+        web.delete('/approve', delete_through_web),
+        web.get('/authors', return_authors_data),
+        web.get('/quotes/nomination', return_nominations_data),
+        web.get('/login', authenticate_handler),
+        web.post('/login', authenticate_handler),
+    ])
     app.router.add_static('/static/', path='quote_web_ui/static', name='static', follow_symlinks=True)
+
+    app.middlewares.append(auth_middleware)
 
     cors = aiohttp_cors.setup(app, defaults={
         "*": aiohttp_cors.ResourceOptions(
@@ -161,9 +180,13 @@ async def start_server():
 
     runner = web.AppRunner(app)
     await runner.setup()
-    site = web.TCPSite(runner, config.address, int(config.port))
+    site = web.TCPSite(runner, '::', int(config.port))
     await site.start()
     print("website is on")
+
+
+async def redirectToIndex(request):
+    raise web.HTTPFound('/index')
 
 
 def check_sqlite_integrity():
@@ -200,9 +223,9 @@ def start_db():
 
 
 def load_config():
-    global config
-    config = None
+    global config, cipher_suite
     config = session.scalars(select(Config).where(Config.id.is_(0))).one()
+    cipher_suite = Fernet(os.getenv("SECRET_KEY"))
     print("config loaded")
 
 
@@ -301,11 +324,154 @@ async def delete_through_web(request):
         return web.json_response({'status': 'error', 'message': str(e)}, status=500)
 
 
+def hash_password(plain_password: str):
+    salt = bcrypt.gensalt()
+    hashed = bcrypt.hashpw(plain_password.encode(), salt)
+    return hashed.decode()
+
+
+@web.middleware
+async def auth_middleware(request, handler):
+    public_paths = ['/login', '/author', '/static', '/quotes/nomination']
+    page = request.path.split('/')[-1]
+
+    if not page or any(request.path.startswith(path) for path in public_paths):
+        return await handler(request)
+
+    token = request.cookies.get('session_token')
+    if not token:
+        print(f'No session cookie found for ip {request.remote}')
+        return web.HTTPFound(f"/login?next={request.path}")
+
+    user_id = validate_session_token(token, page)
+    if not user_id:
+        print('Invalid session token for ip {request.remote}')
+        resp = web.HTTPFound(f"/login?next={request.path}")
+        resp.del_cookie('session_token')
+        return resp
+
+    request['user_id'] = user_id
+
+    return await handler(request)
+
+
+async def authenticate_handler(request):
+    page = request.query.get('next', '/ERRRRRRROR')[1:]
+
+    if request.method == 'POST':
+        data = await request.post()
+        password = data.get('password', '').encode()
+        stored_hash = session.scalars(select(PagePassword).where(PagePassword.page.is_(page))).one_or_none().hash
+
+        ip = request.remote
+
+        if is_login_blocked(ip):
+            return web.Response(text="Too many attempts. Try again later.", status=403)
+
+        if stored_hash and bcrypt.checkpw(password, stored_hash.encode()):
+            token = generate_session_token(ip, page)
+
+            resp = web.HTTPFound(f"/{page}")
+            resp.set_cookie(
+                "session_token",
+                token,
+                httponly=True,
+                secure=False,
+                samesite="strict",
+                max_age=config.login_session_time
+            )
+
+            if ip in failed_login_attempts:
+                del failed_login_attempts[ip]
+
+            return resp
+        else:
+            record_failed_login_attempt(ip)
+            return aiohttp_jinja2.render_template(
+                "login.html",
+                request,
+                {"message": "Invalid password."}
+            )
+
+    return aiohttp_jinja2.render_template("login.html", request, {})
+
+
+def is_login_blocked(ip):
+    if ip in failed_login_attempts:
+        attempts, timestamp = failed_login_attempts[ip]
+
+        if time.time() - timestamp > config.login_failed_timeout:
+            failed_login_attempts[ip] = (0, time.time())
+            return False
+        return attempts >= config.max_login_attempts
+    return False
+
+
+def record_failed_login_attempt(ip):
+    current_time = time.time()
+    if ip in failed_login_attempts:
+        attempts, timestamp = failed_login_attempts[ip]
+
+        if current_time - timestamp > config.login_failed_timeout:
+            failed_login_attempts[ip] = (1, current_time)
+        else:
+            failed_login_attempts[ip] = (attempts + 1, timestamp)
+    else:
+        failed_login_attempts[ip] = (1, current_time)
+
+
+def validate_session_token(token, page):
+    try:
+        decrypted_payload = cipher_suite.decrypt(token.encode('utf-8'))
+        payload = json.loads(decrypted_payload.decode('utf-8'))
+
+        session_id = payload.get('session_id')
+        if not session_id or session_id not in active_sessions:
+            return None
+
+        auth_session = active_sessions[session_id]
+
+        if auth_session['page'] != page:
+            return None
+
+        if time.time() > auth_session['expiry']:
+            del active_sessions[session_id]
+            return None
+
+        return auth_session['user_id']
+    except Exception:
+        return None
+
+
+def generate_session_token(user_id, page):
+    session_id = secrets.token_hex(32)
+    expiry = int(time.time()) + config.login_session_time
+
+    payload = {
+        'session_id': session_id,
+        'user_id': user_id,
+        'page': page,
+        'exp': expiry
+    }
+
+    payload_bytes = json.dumps(payload).encode('utf-8')
+    token = cipher_suite.encrypt(payload_bytes).decode('utf-8')
+
+    active_sessions[session_id] = {
+        'user_id': user_id,
+        'page': page,
+        'expiry': expiry
+    }
+
+    return token
+
+
 @tasks.loop(seconds=2)
 async def ticker():
     print("hello")
 
 
+load_dotenv()
 start_db()
 if config is None:
     print('Couldn\'t load bot token from db')
