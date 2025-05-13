@@ -1,49 +1,29 @@
-import asyncio
 import datetime
 import json
 import math
 import os
-import secrets
 import shutil
 import sqlite3
-import time
-from datetime import datetime, timedelta, timezone
-
 import aiofiles
-import aiohttp_cors
-import aiohttp_jinja2
-import bcrypt
 import discord
-import jinja2
-from aiohttp import web
+
 from cryptography.fernet import Fernet
 from discord import Member
 from discord.ext import commands, tasks
 from dotenv import load_dotenv
-from sqlalchemy import create_engine, select, Engine, func
+from sqlalchemy import create_engine, select
 from sqlalchemy.orm import Session
+from datetime import datetime, timedelta, timezone
 
 import quote_to_image
-from orm import Config, Base, Quote, Author, PagePassword
+import globals
 
-# "bot_token": "redacted",
-# "bot_token_test": "redacted"
-validating_user = 321297277773938690
+from orm import Config, Base, Quote
+from web import start_server
 
 intents = discord.Intents.default()
 intents.message_content = True
-
 bot = commands.Bot(command_prefix=';', intents=discord.Intents.all())
-
-active_sessions = {}
-failed_login_attempts = {}
-
-lock_playing_state = asyncio.Lock()
-path_to_db = 'quotes.db'
-session: Session = None
-engine: Engine = None
-config: Config = None
-cipher_suite: Fernet = None
 
 
 @bot.event
@@ -62,7 +42,7 @@ async def on_ready():
 @bot.tree.command(name='quote', description='Najlepsze kwestie jakie na przestrzeni lat padły na niniejszym serwerze')
 async def quote(interactions):
     load_config()
-    last_quote_time = config.last_used.timetuple()[0:3]
+    last_quote_time = globals.config.last_used.timetuple()[0:3]
     today = datetime.now(timezone.utc).timetuple()[0:3]
     if today <= last_quote_time:
         await interactions.response.send_message(
@@ -71,19 +51,19 @@ async def quote(interactions):
         )
         return
 
-    q_id = await quote_to_image.generate_image(engine)
+    q_id = await quote_to_image.generate_image(globals.engine)
     await interactions.response.send_message(
         file=discord.File('text_image.png', 'Mądrość dnia.png')
     )
 
-    config.last_used = datetime.now(timezone.utc)
-    config.last_quote_id = q_id
-    session.commit()
+    globals.config.last_used = datetime.now(timezone.utc)
+    globals.config.last_quote_id = q_id
+    globals.session.commit()
 
 
 @bot.tree.command(name='explain', description='Dodatkowe informacje \"lore\" ostatniej wypowiedzi')
 async def explain(interactions):
-    res = session.scalars(select(Quote).where(Quote.id.is_(config.last_quote_id))).one_or_none()
+    res = globals.session.scalars(select(Quote).where(Quote.id.is_(globals.config.last_quote_id))).one_or_none()
     if res is None:
         await interactions.response.send_message(
             "No quote response to send", ephemeral=True
@@ -98,13 +78,14 @@ async def explain(interactions):
 @bot.tree.command(name='submit', description='Możliwość dodania własnego cytatu')
 async def submit(interactions):
     await interactions.response.send_message(
-        f"Password: \"{os.getenv('USER_PASS')}\"\nFunctionality moved to here http://{config.address}:{config.port}", ephemeral=True, delete_after=60
+        f"Password: \"{os.getenv('USER_PASS')}\"\nFunctionality moved to here {os.getenv('SITE_URL')}", ephemeral=True,
+        delete_after=60
     )
 
 
 @bot.event
 async def on_member_update(before: Member, after: Member):
-    role_id = 1225828166497730741 # 1236360986970161283
+    role_id = 1225828166497730741  # 1236360986970161283
     channel_id_to_shame = 368439253794947084
 
     if before.get_role(role_id) is None:
@@ -147,52 +128,10 @@ async def on_member_update(before: Member, after: Member):
                     )
 
 
-async def start_server():
-    app = web.Application()
-    aiohttp_jinja2.setup(app, loader=jinja2.FileSystemLoader("quote_web_ui"))
-
-    app.add_routes([
-        web.post('/', submit_through_web),
-        web.get('/', redirectToIndex),
-        web.get('/index', return_web_page_main),
-        web.get('/approve', return_web_page_approve),
-        web.post('/approve', approve_through_web),
-        web.delete('/approve', delete_through_web),
-        web.get('/authors', return_authors_data),
-        web.get('/quotes/nomination', return_nominations_data),
-        web.get('/login', authenticate_handler),
-        web.post('/login', authenticate_handler),
-    ])
-    app.router.add_static('/static/', path='quote_web_ui/static', name='static', follow_symlinks=True)
-
-    app.middlewares.append(auth_middleware)
-
-    cors = aiohttp_cors.setup(app, defaults={
-        "*": aiohttp_cors.ResourceOptions(
-            allow_credentials=True,
-            expose_headers="*",
-            allow_headers="*",
-        )
-    })
-
-    for route in list(app.router.routes()):
-        cors.add(route)
-
-    runner = web.AppRunner(app)
-    await runner.setup()
-    site = web.TCPSite(runner, config.address, int(config.port))
-    await site.start()
-    print("website is on")
-
-
-async def redirectToIndex(request):
-    raise web.HTTPFound('/index')
-
-
 def check_sqlite_integrity():
     try:
-        db = os.path.join(os.path.curdir, path_to_db)
-        db_back = os.path.join(os.path.curdir, path_to_db + '_backup')
+        db = os.path.join(os.path.curdir, globals.path_to_db)
+        db_back = os.path.join(os.path.curdir, globals.path_to_db + '_backup')
         with sqlite3.connect(db) as conn:
             cursor = conn.cursor()
             cursor.execute("PRAGMA integrity_check;")
@@ -214,256 +153,17 @@ def start_db():
     if not check_sqlite_integrity():
         print("db cound not be started")
         return
-    global session, engine
-    engine = create_engine(f"sqlite:///{path_to_db}")
-    Base.metadata.create_all(engine)
-    session = Session(engine)
+    globals.engine = create_engine(f"sqlite:///{globals.path_to_db}")
+    Base.metadata.create_all(globals.engine)
+    globals.session = Session(globals.engine)
     print("db is on")
     load_config()
 
 
 def load_config():
-    global config, cipher_suite
-    config = session.scalars(select(Config).where(Config.id.is_(0))).one()
-    cipher_suite = Fernet(os.getenv("SECRET_KEY"))
+    globals.config = globals.session.scalars(select(Config).where(Config.id.is_(0))).one()
+    globals.cipher_suite = Fernet(os.getenv("SECRET_KEY"))
     print("config loaded")
-
-
-async def return_web_page_main(request):
-    return web.FileResponse(path=os.path.abspath('quote_web_ui/index.html'))
-
-
-async def return_web_page_approve(request):
-    return web.FileResponse(path=os.path.abspath('quote_web_ui/approve.html'))
-
-
-async def return_authors_data(request):
-    authors = list(map(lambda a: a.id, session.scalars(select(Author)).all()))
-    return web.json_response(
-        json.dumps(authors, indent=4, ensure_ascii=False)
-    )
-
-
-async def return_nominations_data(request):
-    quotes_to_accept = list(map(lambda q: (q[0].as_dict(), q[1]),
-        session.execute(
-            select(Quote, func.group_concat(Author.id, ', ').label("authors"))
-            .join(Quote.authors)
-            .where(Quote.confirmed.is_(False))
-            .where(Quote.deleted.is_(False))
-            .group_by(Quote.id)
-        ).all()))
-    return web.json_response(
-        quotes_to_accept
-    )
-
-
-async def submit_through_web(request):
-    try:
-        data = json.loads((await request.json()))
-
-        if type(data['quote']) is not str:
-            new_quote = Quote(
-                quote='[NEW_SENTENCE]'.join(data['quote']),
-                date=data['date'],
-                explanation=data['explanation'],
-                confirmed=False
-            )
-            for a in session.scalars(select(Author).where(Author.id.in_(data['author'].split(';')))).all():
-                new_quote.authors.append(a)
-        else:
-            new_quote = Quote(
-                quote=data['quote'],
-                date=data['date'],
-                explanation=data['explanation'],
-                confirmed=False
-            )
-            new_quote.authors.append(
-                session.scalars(select(Author).where(Author.id.in_(data['author'].split(';')))).one()
-            )
-
-        session.add(new_quote)
-        session.commit()
-
-        return web.json_response({'status': 'success', 'message': 'Quote added to DB'})
-    except Exception as e:
-        return web.json_response({'status': 'error', 'message': str(e)}, status=500)
-
-
-async def approve_through_web(request):
-    try:
-        quote_id = json.loads((await request.json()))['id']
-        if quote_id is None:
-            raise ValueError('quote_id colundn\'t be read from request')
-
-        candidate = session.execute(select(Quote).where(Quote.id.is_(quote_id))).scalar_one_or_none()
-        if candidate is None:
-            raise IndexError('There was no quote for given id')
-
-        candidate.confirmed = True
-        session.commit()
-        return web.json_response({'status': 'success', 'message': 'Quote approved'})
-    except Exception as e:
-        return web.json_response({'status': 'error', 'message': str(e)}, status=500)
-
-
-async def delete_through_web(request):
-    try:
-        quote_id = json.loads((await request.json()))['id']
-        if quote_id is None:
-            raise ValueError('quote_id colundn\'t be read from request')
-
-        candidate = session.execute(select(Quote).where(Quote.id.is_(quote_id))).scalar_one_or_none()
-        if candidate is None:
-            raise IndexError('There was no quote for given id')
-
-        candidate.deleted = True
-        session.commit()
-        return web.json_response({'status': 'success', 'message': 'Quote discarded'})
-    except Exception as e:
-        return web.json_response({'status': 'error', 'message': str(e)}, status=500)
-
-
-def hash_password(plain_password: str):
-    salt = bcrypt.gensalt()
-    hashed = bcrypt.hashpw(plain_password.encode(), salt)
-    return hashed.decode()
-
-
-@web.middleware
-async def auth_middleware(request, handler):
-    public_paths = ['/login', '/author', '/static', '/quotes/nomination']
-    page = request.path.split('/')[-1]
-
-    if not page or any(request.path.startswith(path) for path in public_paths):
-        return await handler(request)
-
-    token = request.cookies.get('session_token')
-    if not token:
-        print(f'No session cookie found for ip {request.remote}')
-        return web.HTTPFound(f"/login?next={request.path}")
-
-    user_id = validate_session_token(token, page)
-    if not user_id:
-        print('Invalid session token for ip {request.remote}')
-        resp = web.HTTPFound(f"/login?next={request.path}")
-        resp.del_cookie('session_token')
-        return resp
-
-    request['user_id'] = user_id
-
-    return await handler(request)
-
-
-async def authenticate_handler(request):
-    page = request.query.get('next', '/ERRRRRRROR')[1:]
-
-    if request.method == 'POST':
-        data = await request.post()
-        password = data.get('password', '').encode()
-        stored_hash = session.scalars(select(PagePassword).where(PagePassword.page.is_(page))).one_or_none().hash
-
-        ip = request.remote
-
-        if is_login_blocked(ip):
-            return web.Response(text="Too many attempts. Try again later.", status=403)
-
-        if stored_hash and bcrypt.checkpw(password, stored_hash.encode()):
-            token = generate_session_token(ip, page)
-
-            resp = web.HTTPFound(f"/{page}")
-            resp.set_cookie(
-                "session_token",
-                token,
-                httponly=True,
-                secure=False,
-                samesite="strict",
-                max_age=config.login_session_time
-            )
-
-            if ip in failed_login_attempts:
-                del failed_login_attempts[ip]
-
-            return resp
-        else:
-            record_failed_login_attempt(ip)
-            return aiohttp_jinja2.render_template(
-                "login.html",
-                request,
-                {"message": "Invalid password."}
-            )
-
-    return aiohttp_jinja2.render_template("login.html", request, {})
-
-
-def is_login_blocked(ip):
-    if ip in failed_login_attempts:
-        attempts, timestamp = failed_login_attempts[ip]
-
-        if time.time() - timestamp > config.login_failed_timeout:
-            failed_login_attempts[ip] = (0, time.time())
-            return False
-        return attempts >= config.max_login_attempts
-    return False
-
-
-def record_failed_login_attempt(ip):
-    current_time = time.time()
-    if ip in failed_login_attempts:
-        attempts, timestamp = failed_login_attempts[ip]
-
-        if current_time - timestamp > config.login_failed_timeout:
-            failed_login_attempts[ip] = (1, current_time)
-        else:
-            failed_login_attempts[ip] = (attempts + 1, timestamp)
-    else:
-        failed_login_attempts[ip] = (1, current_time)
-
-
-def validate_session_token(token, page):
-    try:
-        decrypted_payload = cipher_suite.decrypt(token.encode('utf-8'))
-        payload = json.loads(decrypted_payload.decode('utf-8'))
-
-        session_id = payload.get('session_id')
-        if not session_id or session_id not in active_sessions:
-            return None
-
-        auth_session = active_sessions[session_id]
-
-        if auth_session['page'] != page:
-            return None
-
-        if time.time() > auth_session['expiry']:
-            del active_sessions[session_id]
-            return None
-
-        return auth_session['user_id']
-    except Exception:
-        return None
-
-
-def generate_session_token(user_id, page):
-    session_id = secrets.token_hex(32)
-    expiry = int(time.time()) + config.login_session_time
-
-    payload = {
-        'session_id': session_id,
-        'user_id': user_id,
-        'page': page,
-        'exp': expiry
-    }
-
-    payload_bytes = json.dumps(payload).encode('utf-8')
-    token = cipher_suite.encrypt(payload_bytes).decode('utf-8')
-
-    active_sessions[session_id] = {
-        'user_id': user_id,
-        'page': page,
-        'expiry': expiry
-    }
-
-    return token
 
 
 @tasks.loop(seconds=2)
@@ -473,7 +173,7 @@ async def ticker():
 
 load_dotenv()
 start_db()
-if config is None:
+if globals.config is None:
     print('Couldn\'t load bot token from db')
     exit()
-bot.run(config.bot_token)
+bot.run(globals.config.bot_token)
