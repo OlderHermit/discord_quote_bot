@@ -260,7 +260,11 @@ async function add_quotes_display() {
             entry.appendChild(text);
         }
 
-        //if (q.)
+        const explanation = document.createElement("p");
+        explanation.className = "text_approve";
+        explanation.textContent = q.explanation;
+        entry.appendChild(explanation);
+
         const text = document.createElement("p");
         text.className = "text_approve";
         text.textContent = quotes[i][1];
