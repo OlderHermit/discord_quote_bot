@@ -1,35 +1,24 @@
 import json
 import os
-import aiohttp_cors
-import aiohttp_jinja2
-import bcrypt
-import jinja2
 
+import aiohttp_cors
 from aiohttp import web
 from sqlalchemy import func, select, and_
 
 import globals
-from orm import Quote, Author, PagePassword
-from security import validate_session_token, is_login_blocked, generate_session_token, record_failed_login_attempt
+from orm import Quote, Author
 
 
 async def start_server():
     app = web.Application()
-    aiohttp_jinja2.setup(app, loader=jinja2.FileSystemLoader("quote_web_ui"))
 
     app.add_routes([
         web.post('/', submit_through_web),
-        web.get('/', redirectToIndex),
-        web.get('/index', return_web_page_main),
-        web.get('/approve', return_web_page_approve),
         web.post('/approve', approve_through_web),
         web.delete('/approve', delete_through_web),
         web.get('/authors', return_authors_data),
         web.get('/quotes/nomination', return_nominations_data),
-        web.get('/login', authenticate_handler),
-        web.post('/login', authenticate_handler),
     ])
-    app.router.add_static('/static/', path='quote_web_ui/static', name='static', follow_symlinks=True)
 
     app.middlewares.append(auth_middleware)
 
@@ -51,28 +40,14 @@ async def start_server():
     print("website is on")
 
 
-async def redirectToIndex(_):
-    raise web.HTTPFound('/index')
-
-
-async def return_web_page_main(_):
-    return web.FileResponse(path=os.path.abspath('quote_web_ui/index.html'))
-
-
-async def return_web_page_approve(_):
-    return web.FileResponse(path=os.path.abspath('quote_web_ui/approve.html'))
-
-
 async def return_authors_data(_):
     authors = list(map(lambda a: a.id, globals.session.scalars(select(Author)).all()))
-    return web.json_response(
-        json.dumps(authors, indent=4, ensure_ascii=False)
-    )
+    return web.json_response(authors)
 
 
 async def submit_through_web(request):
     try:
-        data = json.loads((await request.json()))
+        data = (await request.json())
 
         if type(data['quote']) is not str:
             new_quote = Quote(
@@ -103,7 +78,7 @@ async def submit_through_web(request):
 
 
 async def check_if_quote_exists_for_web(request):
-    quote_id = json.loads(await (request.json()))['id']
+    quote_id = (await request.json())['id']
     if quote_id is None:
         raise ValueError("quote_id couldn't be read from request")
 
@@ -155,65 +130,13 @@ async def return_nominations_data(_):
 
 @web.middleware
 async def auth_middleware(request, handler):
-    public_paths = ['/login', '/author', '/static', '/quotes/nomination']
-    page = request.path.split('/')[-1]
+    token = request.headers.get('x-api-key')
 
-    if not page or any(request.path.startswith(path) for path in public_paths):
-        return await handler(request)
-
-    token = request.cookies.get('session_token')
     if not token:
-        print(f'No session cookie found for ip {request.remote}')
-        return web.HTTPFound(f"/login?next={request.path}")
-
-    user_id = validate_session_token(token, page)
-    if not user_id:
-        print('Invalid session token for ip {request.remote}')
-        resp = web.HTTPFound(f"/login?next={request.path}")
-        resp.del_cookie('session_token')
-        return resp
-
-    request['user_id'] = user_id
+        print(f'No api key found for ip {request.remote}')
+        return web.HTTPUnauthorized()
+    if token != os.getenv('API_KEY'):
+        print(f'Invalid api key for ip {request.remote}')
+        return web.HTTPUnauthorized()
 
     return await handler(request)
-
-
-async def authenticate_handler(request):
-    page = request.query.get('next', '/index')[1:]
-
-    if request.method == 'POST':
-        data = await request.post()
-        password = data.get('password', '').encode()
-        stored_hash = globals.session.scalars(select(PagePassword).where(PagePassword.page.is_(page))).one_or_none().hash
-
-        ip = request.remote
-
-        if is_login_blocked(ip):
-            return web.Response(text="Too many attempts. Try again later.", status=403)
-
-        if stored_hash and bcrypt.checkpw(password, stored_hash.encode()):
-            token = generate_session_token(ip, page)
-
-            resp = web.HTTPFound(f"/{page}")
-            resp.set_cookie(
-                "session_token",
-                token,
-                httponly=True,
-                secure=False,
-                samesite="strict",
-                max_age=globals.config.login_session_time
-            )
-
-            if ip in globals.failed_login_attempts:
-                del globals.failed_login_attempts[ip]
-
-            return resp
-        else:
-            record_failed_login_attempt(ip)
-            return aiohttp_jinja2.render_template(
-                "login.html",
-                request,
-                {"message": "Invalid password."}
-            )
-
-    return aiohttp_jinja2.render_template("login.html", request, {})

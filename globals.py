@@ -1,4 +1,3 @@
-from cryptography.fernet import Fernet
 from sqlalchemy import Engine
 from sqlalchemy.orm import Session
 
@@ -13,4 +12,3 @@ path_to_db = 'quotes.db'
 session: Session = None
 engine: Engine = None
 config: Config = None
-cipher_suite: Fernet = None

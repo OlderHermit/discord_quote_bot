@@ -4,20 +4,18 @@ import math
 import os
 import shutil
 import sqlite3
+from datetime import datetime, timedelta, timezone
+
 import aiofiles
 import discord
-
-from cryptography.fernet import Fernet
 from discord import Member
 from discord.ext import commands, tasks
 from dotenv import load_dotenv
 from sqlalchemy import create_engine, select
 from sqlalchemy.orm import Session
-from datetime import datetime, timedelta, timezone
 
-import quote_to_image
 import globals
-
+import quote_to_image
 from orm import Config, Base, Quote
 from web import start_server
 
@@ -162,7 +160,6 @@ def start_db():
 
 def load_config():
     globals.config = globals.session.scalars(select(Config).where(Config.id.is_(0))).one()
-    globals.cipher_suite = Fernet(os.getenv("SECRET_KEY"))
     print("config loaded")
 
 
