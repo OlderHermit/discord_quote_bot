@@ -1,4 +1,3 @@
-import json
 import os
 
 import aiohttp_cors
