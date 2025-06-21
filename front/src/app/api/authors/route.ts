@@ -16,7 +16,7 @@ export async function GET() {
 
         const authorsList: string[] = await response.json();
         return NextResponse.json(authorsList);
-    } catch (error) {
+    } catch {
         return NextResponse.json([], { status: 500 });
     }
 }

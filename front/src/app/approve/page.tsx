@@ -4,9 +4,21 @@ import RuneBackground from "@/app/components/RuneBackground";
 import React, {useEffect, useState} from "react";
 import styles from './approve.module.css'
 
+type Quote = {
+    id: number;
+    quote: string;
+    explanation: string;
+    author: string;
+};
+
+type QuoteObject = {
+    id: number;
+    quote: string;
+    explanation: string;
+};
 
 export default function QuotesPage() {
-    const [quotes, setQuotes] = useState([{id: 0, quote: '', explanation: '', author: ''}]);
+    const [quotes, setQuotes] = useState<Quote[]>([]);
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(true);
 
@@ -25,7 +37,7 @@ export default function QuotesPage() {
                 setError(res.statusText);
                 return
             }
-            const data = await res.json();
+            const data: [QuoteObject, string][] = await res.json();
             setQuotes(
                 data.map(([quoteObj, author]) => ({
                     id: quoteObj.id,

@@ -132,7 +132,7 @@ export default function Home() {
                         <tr key={index}>
                             <td>
                                 <select
-                                    ref={(el) => (selectRefs.current[index] = el)}
+                                    ref={(el) => {selectRefs.current[index] = el}}
                                     className="select"
                                     value={row.author}
                                     onChange={(e) =>

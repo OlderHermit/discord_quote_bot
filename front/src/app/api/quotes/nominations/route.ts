@@ -16,7 +16,7 @@ export async function GET() {
 
         const quotes: string[] = await response.json();
         return NextResponse.json(quotes);
-    } catch (error) {
+    } catch {
         return NextResponse.json([], { status: 500 });
     }
 }
@@ -37,7 +37,7 @@ export async function POST(req: NextRequest) {
         }
 
         return NextResponse.json({ message: (await response.json())['message']}, {status: 200});
-    } catch (error) {
+    } catch {
         return NextResponse.json({message: 'internal error'}, { status: 500 });
     }
 }
@@ -58,7 +58,7 @@ export async function DELETE(req: NextRequest) {
         }
 
         return NextResponse.json({ message: (await response.json())['message']}, {status: 200});
-    } catch (error) {
+    } catch {
         return NextResponse.json({message: 'internal error'}, { status: 500 });
     }
 }

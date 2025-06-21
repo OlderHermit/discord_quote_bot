@@ -23,6 +23,20 @@ const RuneBackground = () => {
     const backgroundRef = useRef(null);
     const [runesData, setRunesData] = useState([]);
 
+    const generateBackground = () => {
+        const vw = Math.max(document.documentElement.clientWidth || 0, window.innerWidth || 0);
+        const vh = Math.max(document.documentElement.clientHeight || 0, window.innerHeight || 0);
+
+        const localRunesData = [];
+
+        for (let i = 0; i < 200; i++) {
+            const runeData = generateRuneForBackground(localRunesData, vw, vh);
+            localRunesData.push(runeData);
+        }
+
+        return localRunesData.filter((runeData) => !runeData.failed);
+    };
+
     useEffect(() => {
         const handleResize = () => {
             const background = generateBackground();
@@ -37,7 +51,7 @@ const RuneBackground = () => {
 
         window.addEventListener('resize', handleResize);
         return () => window.removeEventListener('resize', handleResize);
-    }, []);
+    }, [generateBackground]);
 
     const generateRuneForBackground = (list, vw, vh) => {
         let delay = Math.random() * 25;
@@ -102,20 +116,6 @@ const RuneBackground = () => {
             selectedRunes,
             failed: retryCounter <= 0
         };
-    };
-
-    const generateBackground = () => {
-        const vw = Math.max(document.documentElement.clientWidth || 0, window.innerWidth || 0);
-        const vh = Math.max(document.documentElement.clientHeight || 0, window.innerHeight || 0);
-
-        const localRunesData = [];
-
-        for (let i = 0; i < 200; i++) {
-            const runeData = generateRuneForBackground(localRunesData, vw, vh);
-            localRunesData.push(runeData);
-        }
-
-        return localRunesData.filter((runeData) => !runeData.failed);
     };
 
     return (
