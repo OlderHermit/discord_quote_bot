@@ -12,8 +12,8 @@
     "cookie": "^1.0.2",
     "jose": "^6.0.11",
     "next": "15.3.4",
-    "react": "^19.0.0",
-    "react-dom": "^19.0.0"
+    "react": "^18",
+    "react-dom": "^18"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
@@ -27,6 +27,7 @@
     "typescript": "^5"
   },
   "engines": {
-    "node": ">=20.0.0 <=21.7.2"
+    "node": "20.9.0",
+    "npm": "20.1.0"
   }
 }
