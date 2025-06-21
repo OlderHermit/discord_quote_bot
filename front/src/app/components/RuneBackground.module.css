@@ -1,0 +1,39 @@
+/* RuneBackground.module.css */
+
+.backgroundContainer {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
+    z-index: -1;
+    pointer-events: none;
+}
+
+.runesContainer {
+    display: flex;
+    width: auto;
+    position: absolute;
+    animation: scrollAnimation 21s infinite linear
+}
+
+.rune {
+    z-index: 0;
+    font-size: 1em;
+    font-family: 'RuneScape UF', serif;
+    color: rgba(41, 18, 3, 0.8);
+    animation: fadeInOut 20s infinite;
+}
+
+@keyframes fadeInOut {
+    0%, 100% {
+        opacity: 0;
+    }
+    10%, 30% {
+        opacity: 1;
+    }
+    31%, 100% {
+        opacity: 0;
+    }
+}
