@@ -51,7 +51,7 @@ const RuneBackground = () => {
 
         window.addEventListener('resize', handleResize);
         return () => window.removeEventListener('resize', handleResize);
-    }, [generateBackground]);
+    }, []);
 
     const generateRuneForBackground = (list, vw, vh) => {
         let delay = Math.random() * 25;
