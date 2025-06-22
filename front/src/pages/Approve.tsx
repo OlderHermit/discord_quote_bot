@@ -28,7 +28,7 @@ export default function QuotesPage() {
 
     useEffect(() => {
         async function fetchQuotes() {
-            const res = await fetch(`${import.meta.env.VITE_DB_SERVER!}quotes/nominations`, {
+            const res = await fetch('api/quotes/nominations', {
                 method: 'GET',
                 headers: {'Content-Type': 'application/json'},
                 credentials: 'include'
@@ -60,7 +60,7 @@ export default function QuotesPage() {
     };
 
     async function approveQuote(id: number) {
-        const res = await fetch(`${import.meta.env.VITE_DB_SERVER!}quotes/approve`, {
+        const res = await fetch('/api/quotes/approve', {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify({ id: id }),
@@ -76,7 +76,7 @@ export default function QuotesPage() {
     }
 
     async function discardQuote(id: number) {
-        const res = await fetch(`${import.meta.env.VITE_DB_SERVER!}quotes/approve`, {
+        const res = await fetch('/api/quotes/approve', {
             method: 'DELETE',
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify({ id: id }),

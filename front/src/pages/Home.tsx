@@ -18,7 +18,7 @@ export default function Home() {
 
     useEffect(() => {
         async function fetchAuthors() {
-            const res = await fetch(`${import.meta.env.VITE_DB_SERVER!}authors`, {
+            const res = await fetch('/api/authors', {
                 method: 'GET',
                 headers: {'Content-Type': 'application/json'},
                 credentials: 'include'
@@ -94,7 +94,7 @@ export default function Home() {
         if (generateQuote === null)
             return
 
-        const res = await fetch(`${import.meta.env.VITE_DB_SERVER!}quotes`, {
+        const res = await fetch('/api/quotes', {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
             body: generateQuote,

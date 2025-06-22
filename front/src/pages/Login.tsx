@@ -17,7 +17,7 @@ export const Login = () => {
         try {
             setError('');
 
-            const res = await fetch(`${import.meta.env.VITE_DB_SERVER!}login`, {
+            const res = await fetch('/api/login', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ password }),
