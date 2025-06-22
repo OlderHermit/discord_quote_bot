@@ -1,6 +1,7 @@
 import os
 
 import aiohttp_cors
+import jwt
 from aiohttp import web
 from sqlalchemy import func, select, and_
 
@@ -12,11 +13,13 @@ async def start_server():
     app = web.Application()
 
     app.add_routes([
-        web.post('/', submit_through_web),
-        web.post('/approve', approve_through_web),
-        web.delete('/approve', delete_through_web),
+        web.post('/quotes', submit_through_web),
+        web.post('/quotes/approve', approve_through_web),
+        web.delete('/quotes/approve', delete_through_web),
+        web.get('/quotes/nominations', return_nominations_data),
         web.get('/authors', return_authors_data),
-        web.get('/quotes/nomination', return_nominations_data),
+        web.post('/login', login),
+        web.get('/login/check', check_token),
     ])
 
     app.middlewares.append(auth_middleware)
@@ -127,15 +130,60 @@ async def return_nominations_data(_):
     )
 
 
+async def login(request):
+    try:
+        data = await request.json()
+        password = data.get("password")
+
+        if password == os.getenv('MASTER_PASS'):
+            role = "master"
+        elif password == os.getenv('USER_PASS'):
+            role = "user"
+        else:
+            return web.json_response({"error": "Invalid password"}, status=401)
+
+        token = jwt.encode({"role": role}, os.getenv('SECRET_KEY'), algorithm="HS256")
+
+        resp = web.json_response({'message': 'Login successful', 'token': token}, status=200)
+        resp.set_cookie(
+            'token',
+            token,
+            httponly=True,
+            secure=False,
+            samesite='Strict',
+            max_age=3600
+        )
+        return resp
+    except Exception as e:
+        return web.json_response({"error": str(e)}, status=400)
+
+
+async def check_token(request):
+    return web.json_response({'message': 'Token valid', 'token': request.cookies.get('token')}, status=200)
+
+
 @web.middleware
 async def auth_middleware(request, handler):
-    token = request.headers.get('x-api-key')
+    if request.path == "/login" or request.method == "OPTIONS":
+        return await handler(request)
 
+    token = request.cookies.get('token')
     if not token:
-        print(f'No api key found for ip {request.remote}')
-        return web.HTTPUnauthorized()
-    if token != os.getenv('API_KEY'):
-        print(f'Invalid api key for ip {request.remote}')
-        return web.HTTPUnauthorized()
+        print(f"No or invalid Authorization header from ip {request.remote}")
+        return web.json_response({'message': 'Missing or invalid Authorization header'}, status=401)
+
+    try:
+        payload = jwt.decode(token, os.getenv('SECRET_KEY'), algorithms=["HS256"])
+    except jwt.ExpiredSignatureError:
+        print(f"Expired token from ip {request.remote}")
+        return web.json_response({'message': 'Token expired'}, status=401)
+    except jwt.InvalidTokenError:
+        print(f"Invalid token from ip {request.remote}")
+        return web.json_response({'message': 'Invalid token'}, status=401)
+    except Exception as e:
+        return web.json_response({'message': f'Internal server error {e}'}, status=500)
+
+    if request.path == "quote/approve" and payload.get("role") != "master":
+        return web.json_response({'message': 'You do not have permission to access this resource'}, status=403)
 
     return await handler(request)
