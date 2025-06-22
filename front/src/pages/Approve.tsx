@@ -1,8 +1,8 @@
 'use client'
 
-import RuneBackground from "@/app/components/RuneBackground";
-import React, {useEffect, useState} from "react";
-import styles from './approve.module.css'
+import {useEffect, useState} from 'react';
+import styles from '../styles/Approve.module.css'
+import RuneBackground from '../components/RuneBackground.tsx';
 
 type Quote = {
     id: number;
@@ -23,14 +23,15 @@ export default function QuotesPage() {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        document.title = "Approve Quote";
+        document.title = 'Approve Quote';
     }, []);
 
     useEffect(() => {
         async function fetchQuotes() {
-            const res = await fetch("/api/quotes/nominations", {
+            const res = await fetch(`${import.meta.env.VITE_DB_SERVER!}quotes/nominations`, {
                 method: 'GET',
-                headers: {"Content-Type": "application/json"},
+                headers: {'Content-Type': 'application/json'},
+                credentials: 'include'
             });
 
             if (!res.ok) {
@@ -59,10 +60,11 @@ export default function QuotesPage() {
     };
 
     async function approveQuote(id: number) {
-        const res = await fetch("/api/quotes/nominations", {
+        const res = await fetch(`${import.meta.env.VITE_DB_SERVER!}quotes/approve`, {
             method: 'POST',
-            headers: {"Content-Type": "application/json"},
+            headers: {'Content-Type': 'application/json'},
             body: JSON.stringify({ id: id }),
+            credentials: 'include'
         });
 
         if (!res.ok) {
@@ -74,10 +76,11 @@ export default function QuotesPage() {
     }
 
     async function discardQuote(id: number) {
-        const res = await fetch("/api/quotes/nominations", {
+        const res = await fetch(`${import.meta.env.VITE_DB_SERVER!}quotes/approve`, {
             method: 'DELETE',
-            headers: {"Content-Type": "application/json"},
+            headers: {'Content-Type': 'application/json'},
             body: JSON.stringify({ id: id }),
+            credentials: 'include'
         });
 
         if (!res.ok) {
@@ -93,32 +96,32 @@ export default function QuotesPage() {
     if (!quotes || quotes.length === 0) return <p>No quotes found.</p>;
 
     return (
-        <div className="flex h-screen justify-center items-center">
+        <div className='flex h-screen justify-center items-center'>
             <RuneBackground/>
             <div>
                 {quotes.map((q) => (
                     <div key={q.id} className={`rounded-2xl shadow-xl p-8 bg-cover bg-center w-96 ${styles.column_approve}`}>
-                        <div className="items-start">
-                            {q.quote.split("[NEW_SENTENCE]").map((sentence, i) => {
+                        <div className='items-start'>
+                            {q.quote.split('[NEW_SENTENCE]').map((sentence, i) => {
                                 return (
                                     <p key={i} className={styles.text_approve}>
-                                        {sentence.replace("]", ": ").replace("[", "")}
+                                        {sentence.replace(']', ': ').replace('[', '')}
                                     </p>
                                 );
                             })}
-                            <p className="text_approve">{q.explanation}</p>
-                            <p className="text_approve">{q.author}</p>
+                            <p className='text_approve'>{q.explanation}</p>
+                            <p className='text_approve'>{q.author}</p>
                         </div>
-                        <div className="flex justify-center items-center gap-2">
+                        <div className='flex justify-center items-center gap-2 mt-4'>
                             <input
-                                type="button"
+                                type='button'
                                 onClick={() => approveQuote(q.id)}
-                                value="Accept"
+                                value='Accept'
                             />
                             <input
-                                type="button"
+                                type='button'
                                 onClick={() => discardQuote(q.id)}
-                                value="Discard"
+                                value='Discard'
                             />
                         </div>
                     </div>

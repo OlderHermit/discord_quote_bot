@@ -1,4 +1,7 @@
-@import "tailwindcss";
+:root {
+  --font-geist-sans: "Geist", sans-serif;
+  --font-geist-mono: "Geist Mono", monospace;
+}
 
 body {
   margin: 0;
@@ -14,6 +17,11 @@ body {
   background-image: url('/main_texture.jpeg');
   background-size: auto;
   background-blend-mode: multiply;
+  font-family: var(--font-geist-sans), sans-serif;
+}
+
+.font-mono {
+  font-family: var(--font-geist-mono), monospace;
 }
 
 .contentContainer {

@@ -1,7 +1,7 @@
 'use client'
 
-import React, {useState, useEffect, useRef} from 'react';
-import RuneBackground from "@/app/components/RuneBackground";
+import {useState, useEffect, useRef} from 'react';
+import RuneBackground from "../components/RuneBackground";
 
 export default function Home() {
     const EMPTY_AUTHOR = '-------'
@@ -18,9 +18,10 @@ export default function Home() {
 
     useEffect(() => {
         async function fetchAuthors() {
-            const res = await fetch('/api/authors', {
+            const res = await fetch(`${import.meta.env.VITE_DB_SERVER!}authors`, {
                 method: 'GET',
                 headers: {'Content-Type': 'application/json'},
+                credentials: 'include'
             });
             if (res.ok) {
                 const authorsList: string[] = await res.json();
@@ -64,7 +65,7 @@ export default function Home() {
         const explanation_string = (explanation.length <= 1) ? "----" : explanation;
 
         if (list.length <= 0){
-            alert("Can't submit quote without author or data");
+            alert('Can\'t submit quote without author or data');
             clear_input();
             return null
         }
@@ -93,7 +94,7 @@ export default function Home() {
         if (generateQuote === null)
             return
 
-        const res = await fetch('/api/quotes', {
+        const res = await fetch(`${import.meta.env.VITE_DB_SERVER!}quotes`, {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
             body: generateQuote,

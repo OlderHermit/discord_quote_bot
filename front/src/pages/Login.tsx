@@ -1,37 +1,47 @@
-'use client'
+import {useEffect, useState} from "react";
+import { useNavigate } from 'react-router-dom';
+import RuneBackground from '../components/RuneBackground';
+import {jwtDecode} from "jwt-decode";
+import type {JwtPayload} from "../components/ProtectedRoute.tsx";
 
-import {useEffect, useState} from 'react'
-import { useRouter } from 'next/navigation'
-import RuneBackground from "@/app/components/RuneBackground";
-
-export default function LoginPage() {
-    const [password, setPassword] = useState('')
-    const [error, setError] = useState('')
-    const router = useRouter()
+export const Login = () => {
+    const [password, setPassword] = useState('');
+    const [error, setError] = useState('');
+    const navigate = useNavigate();
 
     useEffect(() => {
-        document.title = "Password Veryfication";
+        document.title = "Password Verification";
     }, []);
 
     const handleLogin = async () => {
-        const res = await fetch('/api/login', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ password }),
-            credentials: 'include'
-        })
+        try {
+            setError('');
 
-        if (res.ok) {
-            router.push('/')
-        } else {
-            const data = await res.json()
-            setError(data.error || 'Login failed')
+            const res = await fetch(`${import.meta.env.VITE_DB_SERVER!}login`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ password }),
+                credentials: 'include'
+            });
+
+            if (res.ok) {
+                const token: string = (await res.json())['token'];
+                const role = jwtDecode<JwtPayload>(token).role;
+                if (role === 'master')
+                    navigate('/approve');
+                if (role ==='user')
+                    navigate('/');
+            }
+
+            setError('Login failed');
+        } catch {
+            setError('Network error. Please try again.');
         }
-    }
+    };
 
     return (
         <div className="flex h-screen justify-center items-center">
-            <RuneBackground/>
+            <RuneBackground />
             <div
                 className="rounded-2xl shadow-xl p-8 bg-cover bg-center contentContainer"
                 style={{ backgroundPosition: "center center", paddingTop: "30px" }}
@@ -59,7 +69,7 @@ export default function LoginPage() {
                 </button>
             </div>
         </div>
-    )
-}
+    );
+};
 
-
+export default Login;

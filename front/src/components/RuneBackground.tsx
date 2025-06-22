@@ -10,7 +10,7 @@ const runes = [
     'ᛰ'
 ];
 
-const runesSizes = {
+const runesSizes: Record<string, number>  = {
     'ᚠ':10.5, 'ᚡ':10.5, 'ᚢ':9.5, 'ᚣ':8.3, 'ᚤ':9.5, 'ᚥ':9.8, 'ᚦ':7.6, 'ᚧ':7.6, 'ᚨ':5.9, 'ᚩ':8.4, 'ᚪ':8.4, 'ᚫ':7.5, 'ᚬ':7.6, 'ᚭ':5.9, 'ᚮ':5.9, 'ᚯ':7.6,
     'ᚰ':7.6, 'ᚱ':8.4, 'ᚲ':5.0, 'ᚳ':6.4, 'ᚴ':8.7, 'ᚵ':8.7, 'ᚶ':8.7, 'ᚷ':7.7, 'ᚸ':7.7, 'ᚹ':8.4, 'ᚺ':9.6, 'ᚻ':9.6, 'ᚼ':7.6, 'ᚽ':4.3, 'ᚾ':7.6, 'ᚿ':5.9,
     'ᛀ':7.6, 'ᛁ':4.2, 'ᛂ':4.2, 'ᛃ':8.1, 'ᛄ':5.8, 'ᛅ':7.6, 'ᛆ':5.9, 'ᛇ':7.6, 'ᛈ':8.4, 'ᛉ':8.6, 'ᛊ':6.1, 'ᛋ':9.1, 'ᛌ':4.2, 'ᛍ':4.2, 'ᛎ':7.6, 'ᛏ':7.6,
@@ -19,15 +19,26 @@ const runesSizes = {
     'ᛰ':9.1
 };
 
+type RuneResult = {
+    delay: number;
+    amount: number;
+    x: number;
+    y: number;
+    runeWidth: number;
+    selectedRunes: string[]; // Adjust this if selectedRunes is not an array of strings
+    failed: boolean;
+};
+
+
 const RuneBackground = () => {
     const backgroundRef = useRef(null);
-    const [runesData, setRunesData] = useState([]);
+    const [runesData, setRunesData] = useState<RuneResult[]>([]);
 
     const generateBackground = () => {
-        const vw = Math.max(document.documentElement.clientWidth || 0, window.innerWidth || 0);
-        const vh = Math.max(document.documentElement.clientHeight || 0, window.innerHeight || 0);
+        const vw: number = Math.max(document.documentElement.clientWidth || 0, window.innerWidth || 0);
+        const vh: number = Math.max(document.documentElement.clientHeight || 0, window.innerHeight || 0);
 
-        const localRunesData = [];
+        const localRunesData: RuneResult[] = [];
 
         for (let i = 0; i < 200; i++) {
             const runeData = generateRuneForBackground(localRunesData, vw, vh);
@@ -53,16 +64,16 @@ const RuneBackground = () => {
         return () => window.removeEventListener('resize', handleResize);
     }, []);
 
-    const generateRuneForBackground = (list, vw, vh) => {
-        let delay = Math.random() * 25;
-        let amount = Math.floor(Math.random() * 9) + 3;
+    const generateRuneForBackground = (list: RuneResult[], vw: number, vh: number) => {
+        const delay = Math.random() * 25;
+        const amount = Math.floor(Math.random() * 9) + 3;
         let x = Math.random() * 100;
         let y = Math.random() * 95;
         let runeWidth = 0;
         const runeHeight = 24;
 
         // Calculate total size
-        const selectedRunes = [];
+        const selectedRunes: string[] = [];
         for (let i = 0; i < amount; i++) {
             const symbol = runes[Math.floor(Math.random() * runes.length)];
             selectedRunes.push(symbol);
@@ -82,7 +93,7 @@ const RuneBackground = () => {
             const hasOverlap = list.some(existingRune => {
                 const existingLeft = (existingRune.x * vw) / 100;
                 const existingTop = (existingRune.y * vh) / 100;
-                const existingRight = existingLeft + existingRune.size;
+                const existingRight = existingLeft + existingRune.runeWidth;
                 const existingBottom = existingTop + runeHeight;
 
                 // Check for rectangle overlap
