@@ -9,14 +9,6 @@ class Base(DeclarativeBase):
     pass
 
 
-association_table = Table(
-    'association_table',
-    Base.metadata,
-    Column('author_id', ForeignKey('author.id')),
-    Column('quote_id', ForeignKey('quote.id')),
-)
-
-
 class Timestamp(TypeDecorator):
     impl = Integer
 
@@ -29,6 +21,19 @@ class Timestamp(TypeDecorator):
         if value is not None:
             return datetime.fromtimestamp(value)
         return value
+
+
+class Sentence(Base):
+    __tablename__ = 'sentence'
+
+    number: Mapped[int] = mapped_column(primary_key=True)
+    author_id: Mapped[str] = mapped_column(ForeignKey('author.id'), primary_key=True)
+    quote_id: Mapped[int] = mapped_column(ForeignKey('quote.id'), primary_key=True)
+    sentence: Mapped[str] = mapped_column(String(200))
+
+    quote: Mapped['Quote'] = relationship(back_populates='sentences')
+    author: Mapped['Author'] = relationship()
+
 
 
 class Author(Base):
@@ -49,7 +54,6 @@ class Quote(Base):
     __tablename__ = 'quote'
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    quote: Mapped[str]
     date: Mapped[str] = mapped_column(default='----')
     explanation: Mapped[str] = mapped_column(default='----')
 
@@ -57,13 +61,16 @@ class Quote(Base):
     used: Mapped[bool] = mapped_column(default=False)
     deleted: Mapped[bool] = mapped_column(default=False)
 
-    authors: Mapped[List[Author]] = relationship(secondary=association_table)
+    sentences: Mapped[List[Sentence]] = relationship(back_populates='quote')
 
     def __repr__(self) -> str:
-        return f'Quote(id={self.id}, quote={self.quote}, date={self.date}, explanation={self.explanation}'
+        return f'Quote(id={self.id}, quote={self.sentences}, date={self.date}, explanation={self.explanation}, author={self.get_authors()}'
 
     def as_dict(self):
         return {c.name: getattr(self, c.name) for c in self.__table__.columns}
+
+    def get_authors(self) -> List[Author]:
+        return list({s.author.id: s.author for s in self.sentences if s.author is not None}.values())
 
 
 class Color(Base):
@@ -99,10 +106,3 @@ class Config(Base):
 
     def __repr__(self) -> str:
         return f'Config(id={self.id}, token=secret last 5 characters{self.bot_token[-5:]}, adress={self.address}:{self.port}, last_used={self.last_used}'
-
-
-class PagePassword(Base):
-    __tablename__ = 'page_passwords'
-
-    page: Mapped[str] = mapped_column(primary_key=True)
-    hash: Mapped[str]
