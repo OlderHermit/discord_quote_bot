@@ -57,6 +57,7 @@ async def submit_through_web(request):
             confirmed=False
         )
         globals.session.add(new_quote)
+        globals.session.flush()
 
         for i, sentence in enumerate(data['sentences']):
             new_sentence = Sentence(
