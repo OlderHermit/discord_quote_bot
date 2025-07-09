@@ -7,7 +7,7 @@ import RuneBackground from '../components/RuneBackground.tsx';
 type SentenceObject = {
     number: number;
     sentence: string;
-    author: string;
+    author_id: string;
 }
 
 type QuoteObject = {
@@ -97,13 +97,13 @@ export default function QuotesPage() {
                             {q.sentences.map((sentence, i) => {
                                 return (
                                     <p key={i} className={styles.text_approve}>
-                                        {sentence.author + ': ' + sentence.sentence}
+                                        {sentence.author_id + ': ' + sentence.sentence}
                                     </p>
                                 );
                             })}
                             {}
                             <p className='text_approve'>{q.explanation}</p>
-                            <p className='text_approve'>{new Set<string>(q.sentences.map(s => s.author))}</p>
+                            {/*<p className='text_approve'>{new Set<string>(q.sentences.map(s => s.author))}</p>*/}
                         </div>
                         <div className='flex justify-center items-center gap-2 mt-4'>
                             <input
