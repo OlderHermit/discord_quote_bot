@@ -26,7 +26,7 @@ class Timestamp(TypeDecorator):
 class Sentence(Base):
     __tablename__ = 'sentence'
 
-    number: Mapped[int] = mapped_column(primary_key=True)
+    number: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     author_id: Mapped[str] = mapped_column(ForeignKey('author.id'), primary_key=True)
     quote_id: Mapped[int] = mapped_column(ForeignKey('quote.id'), primary_key=True)
     sentence: Mapped[str] = mapped_column(String(200))
@@ -44,7 +44,7 @@ class Sentence(Base):
 class Author(Base):
     __tablename__ = 'author'
 
-    id: Mapped[str] = mapped_column(primary_key=True)
+    id: Mapped[str] = mapped_column(primary_key=True, autoincrement=True)
     signature: Mapped[str] = mapped_column(String(30))
     color: Mapped['Color'] = relationship()
 
@@ -61,7 +61,7 @@ class Author(Base):
 class Quote(Base):
     __tablename__ = 'quote'
 
-    id: Mapped[int] = mapped_column(primary_key=True)
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     date: Mapped[str] = mapped_column(default='----')
     explanation: Mapped[str] = mapped_column(default='----')
 
