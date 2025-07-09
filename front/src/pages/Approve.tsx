@@ -4,21 +4,20 @@ import {useEffect, useState} from 'react';
 import styles from '../styles/Approve.module.css'
 import RuneBackground from '../components/RuneBackground.tsx';
 
-type Quote = {
-    id: number;
-    quote: string;
-    explanation: string;
+type SentenceObject = {
+    number: number;
+    sentence: string;
     author: string;
-};
+}
 
 type QuoteObject = {
     id: number;
-    quote: string;
     explanation: string;
+    sentences: SentenceObject[]
 };
 
 export default function QuotesPage() {
-    const [quotes, setQuotes] = useState<Quote[]>([]);
+    const [quotes, setQuotes] = useState<QuoteObject[]>([]);
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(true);
 
@@ -38,15 +37,8 @@ export default function QuotesPage() {
                 setError(res.statusText);
                 return
             }
-            const data: [QuoteObject, string][] = await res.json();
-            setQuotes(
-                data.map(([quoteObj, author]) => ({
-                    id: quoteObj.id,
-                    quote: quoteObj.quote,
-                    explanation: quoteObj.explanation,
-                    author: author,
-                }))
-            );
+            const data: QuoteObject[] = await res.json();
+            setQuotes(data);
         }
 
 
@@ -102,15 +94,16 @@ export default function QuotesPage() {
                 {quotes.map((q) => (
                     <div key={q.id} className={`rounded-2xl shadow-xl p-8 bg-cover bg-center w-96 ${styles.column_approve}`}>
                         <div className='items-start'>
-                            {q.quote.split('[NEW_SENTENCE]').map((sentence, i) => {
+                            {q.sentences.map((sentence, i) => {
                                 return (
                                     <p key={i} className={styles.text_approve}>
-                                        {sentence.replace(']', ': ').replace('[', '')}
+                                        {sentence.author + ': ' + sentence.sentence}
                                     </p>
                                 );
                             })}
+                            {}
                             <p className='text_approve'>{q.explanation}</p>
-                            <p className='text_approve'>{q.author}</p>
+                            <p className='text_approve'>{new Set<string>(q.sentences.map(s => s.author))}</p>
                         </div>
                         <div className='flex justify-center items-center gap-2 mt-4'>
                             <input

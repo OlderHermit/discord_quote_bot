@@ -34,6 +34,11 @@ class Sentence(Base):
     quote: Mapped['Quote'] = relationship(back_populates='sentences')
     author: Mapped['Author'] = relationship()
 
+    def __repr__(self):
+        return f'Sentence({self.number}, {self.quote_id}, {self.author_id}, {self.sentence})'
+
+    def as_dict(self):
+        return {c.name: getattr(self, c.name) for c in self.__table__.columns}
 
 
 class Author(Base):
@@ -48,6 +53,9 @@ class Author(Base):
 
     def as_dict(self):
         return {c.name: getattr(self, c.name) for c in self.__table__.columns}
+
+    def get_tuple_color(self):
+        return self.color.red, self.color.green, self.color.blue
 
 
 class Quote(Base):
@@ -67,7 +75,10 @@ class Quote(Base):
         return f'Quote(id={self.id}, quote={self.sentences}, date={self.date}, explanation={self.explanation}, author={self.get_authors()}'
 
     def as_dict(self):
-        return {c.name: getattr(self, c.name) for c in self.__table__.columns}
+        data = {c.name: getattr(self, c.name) for c in self.__table__.columns}
+        if hasattr(self, 'sentences'):
+            data['sentences'] = [s.as_dict() for s in self.sentences]
+        return data
 
     def get_authors(self) -> List[Author]:
         return list({s.author.id: s.author for s in self.sentences if s.author is not None}.values())

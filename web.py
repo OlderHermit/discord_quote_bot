@@ -3,10 +3,10 @@ import os
 import aiohttp_cors
 import jwt
 from aiohttp import web
-from sqlalchemy import func, select, and_
+from sqlalchemy import select, and_
 
 import globals
-from orm import Quote, Author
+from orm import Quote, Author, Sentence
 
 
 async def start_server():
@@ -51,27 +51,22 @@ async def submit_through_web(request):
     try:
         data = (await request.json())
 
-        if type(data['quote']) is not str:
-            new_quote = Quote(
-                quote='[NEW_SENTENCE]'.join(data['quote']),
-                date=data['date'],
-                explanation=data['explanation'],
-                confirmed=False
-            )
-            for a in globals.session.scalars(select(Author).where(Author.id.in_(data['author'].split(';')))).all():
-                new_quote.authors.append(a)
-        else:
-            new_quote = Quote(
-                quote=data['quote'],
-                date=data['date'],
-                explanation=data['explanation'],
-                confirmed=False
-            )
-            new_quote.authors.append(
-                globals.session.scalars(select(Author).where(Author.id.in_(data['author'].split(';')))).one()
-            )
-
+        new_quote = Quote(
+            date=data['date'],
+            explanation=data['explanation'],
+            confirmed=False
+        )
         globals.session.add(new_quote)
+
+        for i, sentence in enumerate(data['sentences']):
+            new_sentence = Sentence(
+                number=i,
+                sentence=sentence['sentence'],
+                author_id=sentence['author'],
+                quote_id=new_quote.id,
+            )
+            globals.session.add(new_sentence)
+
         globals.session.commit()
 
         return web.json_response({'status': 'success', 'message': 'Quote added to DB'})
@@ -87,7 +82,7 @@ async def check_if_quote_exists_for_web(request):
     candidate = (globals.session.execute(
         select(Quote)
         .where(Quote.id.is_(quote_id))
-        .where(and_(Quote.confirmed.is_(False), Quote.confirmed.is_(False)))
+        .where(and_(Quote.confirmed.is_(False), Quote.deleted.is_(False)))
     ).scalar_one_or_none())
 
     if candidate is None:
@@ -117,10 +112,10 @@ async def delete_through_web(request):
 
 
 async def return_nominations_data(_):
-    quotes_to_accept = list(map(lambda q: (q[0].as_dict(), q[1]),
+    quotes_to_accept = list(map(lambda q: (q[0].as_dict()),
                                 globals.session.execute(
-                                    select(Quote, func.group_concat(Author.id, ', ').label("authors"))
-                                    .join(Quote.authors)
+                                    select(Quote)
+                                    .join(Sentence)
                                     .where(Quote.confirmed.is_(False))
                                     .where(Quote.deleted.is_(False))
                                     .group_by(Quote.id)

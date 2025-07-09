@@ -3,9 +3,21 @@
 import {useState, useEffect, useRef} from 'react';
 import RuneBackground from "../components/RuneBackground";
 
+type SentenceObject = {
+    number: number;
+    author: string;
+    sentence: string;
+}
+
+type QuoteObject = {
+    date: string;
+    explanation: string;
+    sentences: SentenceObject[];
+}
+
 export default function Home() {
     const EMPTY_AUTHOR = '-------'
-    const [dialogFields, setDialogFields] = useState([{author: '', quote: ''}]);
+    const [dialogFields, setDialogFields] = useState([{author: '', sentence: ''}]);
     const [authors, setAuthors] = useState<string[]>([EMPTY_AUTHOR]);
     const [explanation, setExplanation] = useState('');
     const [date, setDate] = useState('');
@@ -46,7 +58,7 @@ export default function Home() {
     const handleInputChange = (index: number, field: string, value: string) => {
         const updatedFields = [...dialogFields];
         if (field === 'quote')
-            updatedFields[index].quote = value;
+            updatedFields[index].sentence = value;
         else if (field === 'author')
             updatedFields[index].author = value;
         setDialogFields(updatedFields);
@@ -54,7 +66,7 @@ export default function Home() {
 
     const addField = () => {
         if (dialogFields.length >= 8) return;
-        setDialogFields([...dialogFields, {author: '', quote: ''}]);
+        setDialogFields([...dialogFields, {author: '', sentence: ''}]);
         setFocusIndex(dialogFields.length);
     };
 
@@ -69,25 +81,22 @@ export default function Home() {
             clear_input();
             return null
         }
-        else if (list.length === 1) {
-            const quoteObject = {
-                quote: list[0].quote,
-                author: list[0].author,
-                date: date_string,
-                explanation: explanation_string,
-            };
-            return JSON.stringify(quoteObject);
-        } else {
-            const base_quote = list.map((e) => `"[${e.author}]${e.quote}"`);
-            const base_authors = Array.from(new Set(list.map(e => e.author))).join(';');
-            const quoteObject = {
-                quote: base_quote,
-                author: base_authors,
-                date: date_string,
-                explanation: explanation,
-            };
-            return JSON.stringify(quoteObject);
+
+        const sentences: SentenceObject[] = []
+        for (let i = 0; i < list.length; i++) {
+            sentences.push({
+                number: i,
+                author: list[i].author,
+                sentence: list[i].sentence,
+            })
         }
+        const quoteObject: QuoteObject = {
+            date: date_string,
+            explanation: explanation_string,
+            sentences: sentences
+        };
+        return JSON.stringify(quoteObject);
+
     }
 
     async function send_quote(generateQuote: null | string) {
@@ -115,7 +124,7 @@ export default function Home() {
     function clear_input() {
         setExplanation('')
         setDate('')
-        setDialogFields([{author: '', quote: ''}])
+        setDialogFields([{author: '', sentence: ''}])
     }
 
     const handleSubmit = async () => {
@@ -151,7 +160,7 @@ export default function Home() {
                                 <input
                                     type="text"
                                     className="quote"
-                                    value={row.quote}
+                                    value={row.sentence}
                                     onChange={(e) =>
                                         handleInputChange(index, 'quote', e.target.value)
                                     }
