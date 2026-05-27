@@ -1,4 +1,6 @@
+import datetime
 import os
+import secrets
 
 import aiohttp_cors
 import jwt
@@ -72,7 +74,8 @@ async def submit_through_web(request):
 
         return web.json_response({'status': 'success', 'message': 'Quote added to DB'})
     except Exception as e:
-        return web.json_response({'status': 'error', 'message': str(e)}, status=500)
+        print(f"Submit error: {e}")  # albo logger
+        return web.json_response({'status': 'error', 'message': 'Internal error'}, status=500)
 
 
 async def check_if_quote_exists_for_web(request):
@@ -99,7 +102,8 @@ async def approve_through_web(request):
         globals.session.commit()
         return web.json_response({'status': 'success', 'message': 'Quote approved'})
     except Exception as e:
-        return web.json_response({'status': 'error', 'message': str(e)}, status=500)
+        print(f"Submit error: {e}")  # albo logger
+        return web.json_response({'status': 'error', 'message': 'Internal error'}, status=500)
 
 
 async def delete_through_web(request):
@@ -109,7 +113,8 @@ async def delete_through_web(request):
         globals.session.commit()
         return web.json_response({'status': 'success', 'message': 'Quote discarded'})
     except Exception as e:
-        return web.json_response({'status': 'error', 'message': str(e)}, status=500)
+        print(f"Submit error: {e}")  # albo logger
+        return web.json_response({'status': 'error', 'message': 'Internal error'}, status=500)
 
 
 async def return_nominations_data(_):
@@ -131,21 +136,24 @@ async def login(request):
         data = await request.json()
         password = data.get("password")
 
-        if password == os.getenv('MASTER_PASS'):
+        if secrets.compare_digest(password, os.getenv('MASTER_PASS') or ''):
             role = "master"
-        elif password == os.getenv('USER_PASS'):
+        elif secrets.compare_digest(password,os.getenv('USER_PASS') or ''):
             role = "user"
         else:
             return web.json_response({"error": "Invalid password"}, status=401)
 
-        token = jwt.encode({"role": role}, os.getenv('SECRET_KEY'), algorithm="HS256")
+        token = jwt.encode({
+            "role": role,
+            "exp": datetime.datetime.now(datetime.UTC) + datetime.timedelta(hours=1)
+        }, os.getenv('SECRET_KEY'), algorithm="HS256")
 
         resp = web.json_response({'message': 'Login successful', 'token': token}, status=200)
         resp.set_cookie(
             'token',
             token,
             httponly=True,
-            secure=False,
+            secure=True,
             samesite='Strict',
             max_age=3600
         )
@@ -179,7 +187,7 @@ async def auth_middleware(request, handler):
     except Exception as e:
         return web.json_response({'message': f'Internal server error {e}'}, status=500)
 
-    if request.path == "quote/approve" and payload.get("role") != "master":
+    if request.path == "/quotes/approve" and payload.get("role") != "master":
         return web.json_response({'message': 'You do not have permission to access this resource'}, status=403)
 
     return await handler(request)
