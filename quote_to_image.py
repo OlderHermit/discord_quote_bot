@@ -30,23 +30,41 @@ def split_to_size(dialogue: Quote, maxsize: int, font: FreeTypeFont):
     space_width = get_size(' ', font)
     max_author_width = max(get_size(a.id + ':', font) for a in dialogue.get_authors())
     spaces_equal_max_author_width = math.ceil(max_author_width / space_width) + author_offset
+    single_sentence = len(dialogue.sentences) == 1
+
+    if single_sentence:
+        text = dialogue.sentences[0].sentence
+        for line in wrap_words(
+                text,
+                '',
+                '',
+                maxsize,
+                font
+        ):
+            result.append((center(line, maxsize, font), default_font_color))
+
+        longest_size = max((get_size(line, font) for line, _ in result), default=0)
+        result.append((center(generate_separator(longest_size, font), maxsize, font), default_font_color))
+        return result
 
     for sentence in dialogue.sentences:
         author = sentence.author
         text = sentence.sentence
 
+        author_prefix = format_author_line(author, space_width, max_author_width, author_offset, font)
+        empty_prefix = spaces_equal_max_author_width * ' '
+
         for i, line in enumerate(wrap_words(
             text,
-            format_author_line(author, space_width, max_author_width, author_offset, font),
-            spaces_equal_max_author_width * ' ',
+            author_prefix,
+            empty_prefix,
             maxsize,
             font
         )):
             color = author.get_tuple_color() if i == 0 else default_font_color
             result.append((line, color))
 
-    longest_size = max((get_size(line, font) for line, _ in result), default=0)
-    result.append((center(generate_separator(longest_size, font), maxsize, font), default_font_color))
+    result.append((center(generate_separator(maxsize, font), maxsize, font), default_font_color))
     return result
 
 def wrap_words(words: str, first_prefix: str, cont_prefix: str, maxsize: int, font: FreeTypeFont):
@@ -79,8 +97,8 @@ def split_emoji(text: str):
 
 def generate_separator(longest_size: int, check_font: FreeTypeFont):
     sep_width = get_size('-', check_font)
-    seps = math.ceil(longest_size / sep_width)+2
-    return '-'*seps
+    seps = math.ceil(longest_size / sep_width)
+    return '-' * seps
 
 
 def prepare_dialogue(quote: Quote, max_width: int, fonts: dict[str, FreeTypeFont]):
