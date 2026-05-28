@@ -34,22 +34,22 @@ def split_to_size(dialogue: Quote, maxsize: int, font: FreeTypeFont):
     for sentence in dialogue.sentences:
         author = sentence.author
         text = sentence.sentence
-        color = author.get_tuple_color()
 
-        for line in wrap_words(
+        for i, line in enumerate(wrap_words(
             text,
             format_author_line(author, space_width, max_author_width, author_offset, font),
             spaces_equal_max_author_width * ' ',
             maxsize,
             font
-        ):
+        )):
+            color = author.get_tuple_color() if i == 0 else default_font_color
             result.append((line, color))
 
     longest_size = max((get_size(line, font) for line, _ in result), default=0)
     result.append((center(generate_separator(longest_size, font), maxsize, font), default_font_color))
     return result
 
-def wrap_words(words, first_prefix, cont_prefix, maxsize, font):
+def wrap_words(words: str, first_prefix: str, cont_prefix: str, maxsize: int, font: FreeTypeFont):
     line = first_prefix
     width = get_size(line, font)
     for word in words.split(' '):
