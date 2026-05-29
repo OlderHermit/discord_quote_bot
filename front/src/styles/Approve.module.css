@@ -2,28 +2,73 @@
     position: relative;
     z-index: 2;
     display: flex;
-    width: fit-content;
-    height: fit-content;
-    justify-content: center;
     flex-direction: column;
-    box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
-    border-radius: 10px;
-    border-color: #505149;
-    border-style: solid;
+    justify-content: center;
+    box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2),
+                inset 0 0 30px rgba(139, 94, 60, 0.12);
+    border-radius: 8px;
+    border: 2px solid var(--border-brown, #573c22);
     transition: 0.3s;
+    margin: 1em auto;
+    padding: 22px 26px;
+    width: min(90vw, 25em);
+    box-sizing: border-box;
+    overflow: hidden;
+    background-color: #f3e7cb;          /* warm parchment, matches Home preview */
+}
+
+.column_approve::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 0;
     background-image: url('/quote_texture.png');
     background-size: 150%;
     background-position: center;
     background-repeat: no-repeat;
-    filter: brightness(130%);
-    margin-top: 1em;
-    max-width: 25em;
-    min-width: 25em;
+    background-blend-mode: multiply;
+    opacity: 0.4;                       /* subtle texture, no harsh brightness */
+    border-radius: 8px;
 }
 
-.text_approve{
-    width: 80%;
-    padding-top: 5px;
-    margin-bottom: 0px;
-    align-items: start;
+/* Keep all real content above the texture layer */
+.column_approve > * {
+    position: relative;
+    z-index: 1;
+}
+
+.lines {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+}
+
+.text_approve {
+    font-family: 'Georgia', serif;
+    color: var(--ink, #040704);
+    margin: 0;
+    line-height: 1.5;
+}
+
+/* Explanation styled like the Home preview meta (muted, italic, divider) */
+.explanation {
+    font-family: 'Georgia', serif;
+    color: #5a4a36;
+    font-style: italic;
+    font-size: 0.9rem;
+    margin: 0.75rem 0 0;
+    padding-top: 0.5rem;
+    border-top: 1px solid rgba(87, 60, 34, 0.4);
+}
+
+.actions {
+    display: flex;
+    justify-content: center;
+    gap: 0.75rem;
+    margin-top: 1rem;
+}
+
+.button {
+    flex: 0 0 auto;
+    min-width: 100px;
 }

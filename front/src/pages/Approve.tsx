@@ -27,24 +27,25 @@ export default function QuotesPage() {
 
     useEffect(() => {
         async function fetchQuotes() {
-            const res = await fetch('api/quotes/nominations', {
-                method: 'GET',
-                headers: {'Content-Type': 'application/json'},
-                credentials: 'include'
-            });
+            try {
+                const res = await fetch('api/quotes/nominations', {
+                    method: 'GET',
+                    headers: {'Content-Type': 'application/json'},
+                    credentials: 'include'
+                });
 
-            if (!res.ok) {
-                setError(res.statusText);
-                return
+                if (!res.ok) {
+                    setError(res.statusText);
+                    return;
+                }
+                const data: QuoteObject[] = await res.json();
+                setQuotes(data);
+            } finally {
+                setLoading(false);   // runs after the request resolves, not before
             }
-            const data: QuoteObject[] = await res.json();
-            setQuotes(data);
         }
 
-
-
         fetchQuotes();
-        setLoading(false);
     }, []);
 
     const removeQuote = (idToRemove: number) => {
@@ -92,27 +93,27 @@ export default function QuotesPage() {
             <RuneBackground/>
             <div>
                 {quotes.map((q) => (
-                    <div key={q.id} className={`rounded-2xl shadow-xl p-8 bg-cover bg-center w-96 ${styles.column_approve}`}>
-                        <div className='items-start'>
-                            {q.sentences.map((sentence, i) => {
-                                return (
-                                    <p key={i} className={styles.text_approve}>
-                                        {sentence.author_id + ': ' + sentence.sentence}
-                                    </p>
-                                );
-                            })}
-                            {}
-                            <p className='text_approve'>{q.explanation}</p>
-                            {/*<p className='text_approve'>{new Set<string>(q.sentences.map(s => s.author))}</p>*/}
+                    <div key={q.id} className={`rounded-2xl shadow-xl bg-cover bg-center ${styles.column_approve}`}>
+                        <div className={styles.lines}>
+                            {q.sentences.map((sentence, i) => (
+                                <p key={i} className={styles.text_approve}>
+                                    {sentence.author_id + ': ' + sentence.sentence}
+                                </p>
+                            ))}
+                            {q.explanation && (
+                                <p className={styles.explanation}>{q.explanation}</p>
+                            )}
                         </div>
-                        <div className='flex justify-center items-center gap-2 mt-4'>
+                        <div className={styles.actions}>
                             <input
                                 type='button'
+                                className={styles.button}
                                 onClick={() => approveQuote(q.id)}
                                 value='Accept'
                             />
                             <input
                                 type='button'
+                                className={styles.button}
                                 onClick={() => discardQuote(q.id)}
                                 value='Discard'
                             />

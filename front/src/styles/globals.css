@@ -36,7 +36,9 @@ body {
 }
 
 /* =================================================================
-   SHARED CARD — used by Login. Restored to original look.
+   LOGIN CARD (.contentContainer)
+   Background art + brightness live on ::before so they don't wash out
+   the input text / placeholder (same fix as the Home editor).
    ================================================================= */
 .contentContainer {
   position: relative;
@@ -47,12 +49,6 @@ body {
   align-items: center;
   justify-content: center;
   flex-direction: column;
-  background-image: url('/quote_background.jpg'), url('/quote_texture.jpeg');
-  background-size: 100%, cover;
-  background-position: top, center;
-  background-repeat: no-repeat, repeat;
-  background-blend-mode: multiply;
-  filter: brightness(160%);
   box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
   border-radius: 5px;
   transition: 0.3s;
@@ -60,6 +56,51 @@ body {
   padding: 30px;
   padding-top: 130px;
   min-width: 35vw;
+  overflow: hidden;
+}
+
+.contentContainer::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background-image: url('/quote_background.jpg'), url('/quote_texture.jpeg');
+  background-size: 100%, cover;
+  background-position: center, center;   /* matches Login's centered art */
+  background-repeat: no-repeat, repeat;
+  background-blend-mode: multiply;
+  filter: brightness(160%);
+  border-radius: 5px;
+}
+
+.contentContainer > * {
+  position: relative;
+  z-index: 1;                            /* real content sits above the art */
+}
+
+/* Heading + error text (don't rely on Tailwind utilities) */
+.contentContainer h2 {
+  font-family: 'Georgia', serif;
+  color: var(--ink);
+  margin: 0 0 1rem;
+}
+
+.contentContainer p {
+  font-family: 'Georgia', serif;
+  color: #9b2c2c;                        /* readable error red */
+  margin: 0 0 0.75rem;
+}
+
+/* Password input — consistent with Home's fields, with real padding */
+.contentContainer input[type="password"] {
+  width: 100%;
+  max-width: 340px;
+  margin: 0 0 0.9rem;
+  padding: 10px 14px;
+  background: #fbf5e6;                   /* same bright parchment as Home */
+  color: var(--ink);
+  font-weight: normal;
+  cursor: text;
 }
 
 td {
@@ -178,7 +219,7 @@ select option {
   inset: 0;
   z-index: 0;
   background-image: url('/quote_background.jpg'), url('/quote_texture.jpeg');
-  background-size: 100%, cover;
+  background-size: cover, cover;
   background-position: top, center;
   background-repeat: no-repeat, repeat;
   background-blend-mode: multiply;
