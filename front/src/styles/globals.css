@@ -7,13 +7,14 @@
   --ink: #040704;
   --border-brown: #573c22;
   --border-brown-light: #a67c52;
+  --gradient-button: linear-gradient(to bottom, #d9c8a9, #c2a982);
 }
 
 body {
   margin: 0;
   padding: 0;
   position: relative;
-  min-height: 100vh;
+  min-height: 100vh;            /* was height:100vh + flex-center; now scrolls */
   background-color: #ffe4b2;
   overflow-x: hidden;
   background-image: url('/main_texture.jpeg');
@@ -26,8 +27,96 @@ body {
   font-family: var(--font-geist-mono), monospace;
 }
 
-/* ---------- Page + responsive layout ---------- */
+/* =================================================================
+   SHARED CARD  —  used by Login (and any page with .contentContainer)
+   Restored to the original look so Login is unchanged.
+   ================================================================= */
+.contentContainer {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  width: fit-content;
+  height: fit-content;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  background-image: url('/quote_background.jpg'), url('/quote_texture.jpeg');
+  background-size: 100%, cover;
+  background-position: top, center;
+  background-repeat: no-repeat, repeat;
+  background-blend-mode: multiply;
+  filter: brightness(160%);
+  box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
+  border-radius: 5px;
+  transition: 0.3s;
+  margin-top: 1em;
+  padding: 30px;
+  padding-top: 130px;
+  min-width: 35vw;
+}
 
+td {
+  font-family: 'Georgia', serif;
+  color: var(--ink);
+}
+
+/* =================================================================
+   BASE FIELD STYLING  —  applies everywhere (Login, Approve, Home)
+   Text fields stay parchment; buttons/selects get the gradient below.
+   ================================================================= */
+input, select, textarea, button {
+  font-family: 'Georgia', serif;
+  border: 2px solid var(--border-brown);
+  border-radius: 6px;
+  background-color: var(--parchment);
+  color: var(--ink);
+  box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.1),
+              0 0 8px rgba(139, 94, 60, 0.2);
+  transition: all 0.2s ease-in-out;
+  font-size: 16px;             /* >=16px stops iOS zoom-on-focus */
+  padding: 8px 12px;
+  box-sizing: border-box;
+}
+
+input:hover, select:hover, textarea:hover, button:hover,
+input:focus, select:focus, textarea:focus, button:focus {
+  background-color: var(--parchment-dark);
+  border-color: var(--border-brown-light);
+  outline: none;
+}
+
+/* Buttons + selects get the themed gradient.
+   Covers <button>, <input type=button|submit|reset>, and <select>
+   so Login's Log-In button and Approve's Accept/Discard stay themed,
+   while text inputs / date / textareas remain flat parchment. */
+button,
+input[type="button"],
+input[type="submit"],
+input[type="reset"],
+select {
+  cursor: pointer;
+  background: var(--gradient-button);
+  font-weight: bold;
+}
+
+button:active,
+input[type="button"]:active,
+input[type="submit"]:active {
+  background: #bfa374;
+  transform: scale(0.98);
+}
+
+select option {
+  background-color: var(--parchment);
+  color: var(--ink);
+  font-family: 'Georgia', serif;
+  font-size: 16px;
+}
+
+/* =================================================================
+   HOME PAGE  —  editor + live preview, responsive
+   Scoped to its own classes so it never touches Login/Approve.
+   ================================================================= */
 .page {
   position: relative;
   z-index: 1;
@@ -51,18 +140,15 @@ body {
   max-width: 1100px;
 }
 
-/* Editor + preview share the row on desktop, stack on mobile */
-.contentContainer,
+.editorCard,
 .previewContainer {
   flex: 1 1 380px;
-  min-width: 0;            /* allow shrinking below content width on mobile */
+  min-width: 0;                /* allow shrinking below content width on mobile */
   max-width: 520px;
   box-sizing: border-box;
 }
 
-/* ---------- Editor card ---------- */
-
-.contentContainer {
+.editorCard {
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
@@ -75,7 +161,7 @@ body {
   box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
   border-radius: 5px;
   transition: 0.3s;
-  padding: 110px 24px 28px;  /* top padding leaves room for the header art */
+  padding: 110px 24px 28px;
 }
 
 .cardTitle {
@@ -85,8 +171,6 @@ body {
   margin: 0 0 0.25rem;
   font-size: 1.5rem;
 }
-
-/* ---------- Dialogue lines ---------- */
 
 .lines {
   display: flex;
@@ -100,59 +184,23 @@ body {
   gap: 0.5rem;
 }
 
-td {
-  font-family: 'Georgia', serif;
-  color: var(--ink);
-}
-
-/* Shared field styling (parchment look preserved) */
-input, select, textarea, button {
-  font-family: 'Georgia', serif;
-  border: 2px solid var(--border-brown);
-  border-radius: 6px;
-  background-color: var(--parchment);
-  color: var(--ink);
-  box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.1),
-              0 0 8px rgba(139, 94, 60, 0.2);
-  transition: all 0.2s ease-in-out;
-  font-size: 16px;          /* >=16px stops iOS from zooming on focus */
-  padding: 8px 12px;
-  box-sizing: border-box;
-}
-
-input:hover, select:hover, textarea:hover, button:hover,
-input:focus, select:focus, textarea:focus, button:focus {
-  background-color: var(--parchment-dark);
-  border-color: var(--border-brown-light);
-  outline: none;
-}
-
-/* The author dropdown stays compact; the line text takes the rest */
 .select {
   flex: 0 0 auto;
   max-width: 38%;
-  cursor: pointer;
-  background: linear-gradient(to bottom, #d9c8a9, #c2a982);
-  font-weight: bold;
 }
 
 .quote {
   flex: 1 1 auto;
   width: 100%;
   min-height: 2.6rem;
-  resize: none;             /* height is managed automatically in JS */
+  resize: none;               /* height managed in JS */
   overflow: hidden;
   line-height: 1.4;
+  /* override the gradient: text field should be flat parchment */
+  background: var(--parchment);
+  font-weight: normal;
+  cursor: text;
 }
-
-select option {
-  background-color: var(--parchment);
-  color: var(--ink);
-  font-family: 'Georgia', serif;
-  font-size: 16px;
-}
-
-/* ---------- Buttons ---------- */
 
 .iconButton {
   flex: 0 0 auto;
@@ -160,17 +208,11 @@ select option {
   height: 2.4rem;
   padding: 0;
   font-size: 1.2rem;
-  font-weight: bold;
   line-height: 1;
-  cursor: pointer;
-  background: linear-gradient(to bottom, #d9c8a9, #c2a982);
 }
 
 .addButton {
   align-self: flex-start;
-  cursor: pointer;
-  font-weight: bold;
-  background: linear-gradient(to bottom, #d9c8a9, #c2a982);
 }
 
 .addButton:disabled {
@@ -186,18 +228,8 @@ select option {
 
 .buttons {
   flex: 1 1 0;
-  cursor: pointer;
-  font-weight: bold;
   font-size: 1rem;
-  background: linear-gradient(to bottom, #d9c8a9, #c2a982);
 }
-
-.buttons:active {
-  background: #bfa374;
-  transform: scale(0.98);
-}
-
-/* ---------- Meta fields ---------- */
 
 .metaField {
   display: flex;
@@ -210,8 +242,6 @@ select option {
   color: var(--ink);
   font-weight: bold;
 }
-
-/* ---------- Preview panel ---------- */
 
 .previewContainer {
   display: flex;
@@ -246,9 +276,7 @@ select option {
   line-height: 1.5;
 }
 
-.previewAuthor {
-  font-weight: bold;
-}
+.previewAuthor { font-weight: bold; }
 
 .previewMeta {
   display: flex;
@@ -262,50 +290,19 @@ select option {
   font-size: 0.9rem;
 }
 
-.previewExpl {
-  font-style: italic;
-}
-
-/* ---------- Mobile tuning ---------- */
+.previewExpl { font-style: italic; }
 
 @media (max-width: 600px) {
-  .page {
-    padding: 0.75rem 0.75rem 2rem;
-  }
-
-  .contentContainer {
-    padding: 80px 16px 20px;  /* less reserved header space on small screens */
-  }
-
-  .previewContainer {
-    padding: 16px;
-  }
-
-  /* Stack author over the line text when space is tight */
-  .line {
-    flex-wrap: wrap;
-  }
-
-  .select {
-    max-width: none;
-    flex: 1 1 100%;
-  }
-
-  .quote {
-    flex: 1 1 100%;
-  }
-
-  .iconButton {
-    width: 2.2rem;
-    height: 2.2rem;
-  }
+  .page { padding: 0.75rem 0.75rem 2rem; }
+  .editorCard { padding: 80px 16px 20px; }
+  .previewContainer { padding: 16px; }
+  .line { flex-wrap: wrap; }
+  .select { max-width: none; flex: 1 1 100%; }
+  .quote { flex: 1 1 100%; }
+  .iconButton { width: 2.2rem; height: 2.2rem; }
 }
 
 @keyframes scrollAnimation {
-  0% {
-    transform: translateX(0%);
-  }
-  100% {
-    transform: translateX(400%);
-  }
+  0%   { transform: translateX(0%); }
+  100% { transform: translateX(400%); }
 }

@@ -163,7 +163,7 @@ export default function Home() {
 
             <div className="layout">
                 {/* ---------- EDITOR ---------- */}
-                <div className="contentContainer">
+                <div className="editorCard">
                     <h1 className="cardTitle">Add a Quote</h1>
 
                     <div className="lines">
