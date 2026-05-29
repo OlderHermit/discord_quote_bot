@@ -182,20 +182,27 @@ select option {
 .layout {
   position: relative;
   z-index: 2;
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: 1fr;       /* mobile-first: stacked */
   gap: 1.5rem;
-  align-items: flex-start;   /* the two cards stay top-aligned to each other */
-  justify-content: center;
+  align-items: start;               /* cards top-aligned to each other */
+  justify-items: center;
   width: 100%;
   max-width: 1100px;
 }
 
+/* Side-by-side only above a fixed width — never reacts to typed content. */
+@media (min-width: 880px) {
+  .layout {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
 .editorCard,
 .previewContainer {
-  flex: 1 1 380px;
-  min-width: 0;
-  max-width: 520px;
+  width: 100%;
+  min-width: 0;                     /* content can never force the column wider */
+  max-width: 560px;
   box-sizing: border-box;
 }
 
@@ -244,12 +251,14 @@ select option {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
+  min-width: 0;
 }
 
 .line {
   display: flex;
   align-items: flex-start;
   gap: 0.5rem;
+  min-width: 0;
 }
 
 .select {
@@ -261,11 +270,13 @@ select option {
 .quote {
   flex: 1 1 auto;
   width: 100%;
+  min-width: 0;               /* override the control's intrinsic min size */
   min-height: 2.6rem;
   resize: none;
   overflow: hidden;
+  overflow-wrap: anywhere;    /* long words wrap instead of widening the line */
   line-height: 1.4;
-  background: #fbf5e6;       /* slightly brighter parchment for contrast */
+  background: #fbf5e6;        /* slightly brighter parchment for contrast */
   color: var(--ink);
   font-weight: normal;
   cursor: text;
