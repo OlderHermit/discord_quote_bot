@@ -1,19 +1,21 @@
 :root {
   --font-geist-sans: "Geist", sans-serif;
   --font-geist-mono: "Geist Mono", monospace;
+
+  --parchment: #f5ecd9;
+  --parchment-dark: #f0e2c4;
+  --ink: #040704;
+  --border-brown: #573c22;
+  --border-brown-light: #a67c52;
 }
 
 body {
   margin: 0;
   padding: 0;
   position: relative;
-  height: 100vh;
-  display: flex;
-  justify-content: center;
-  /*background-color: #e2d2b4;*/
+  min-height: 100vh;
   background-color: #ffe4b2;
   overflow-x: hidden;
-  align-items: center;
   background-image: url('/main_texture.jpeg');
   background-size: auto;
   background-blend-mode: multiply;
@@ -24,15 +26,46 @@ body {
   font-family: var(--font-geist-mono), monospace;
 }
 
-.contentContainer {
+/* ---------- Page + responsive layout ---------- */
+
+.page {
+  position: relative;
+  z-index: 1;
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 1.5rem 1rem 3rem;
+  box-sizing: border-box;
+}
+
+.layout {
   position: relative;
   z-index: 2;
   display: flex;
-  width: fit-content;
-  height: fit-content;
-  align-items: center;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+  align-items: flex-start;
   justify-content: center;
+  width: 100%;
+  max-width: 1100px;
+}
+
+/* Editor + preview share the row on desktop, stack on mobile */
+.contentContainer,
+.previewContainer {
+  flex: 1 1 380px;
+  min-width: 0;            /* allow shrinking below content width on mobile */
+  max-width: 520px;
+  box-sizing: border-box;
+}
+
+/* ---------- Editor card ---------- */
+
+.contentContainer {
+  display: flex;
   flex-direction: column;
+  gap: 0.75rem;
   background-image: url('/quote_background.jpg'), url('/quote_texture.jpeg');
   background-size: 100%, cover;
   background-position: top, center;
@@ -42,44 +75,121 @@ body {
   box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
   border-radius: 5px;
   transition: 0.3s;
-  margin-top: 1em;
-  padding: 30px;
-  padding-top: 130px;
+  padding: 110px 24px 28px;  /* top padding leaves room for the header art */
+}
 
-  min-width: 35vw;
+.cardTitle {
+  font-family: 'Georgia', serif;
+  color: var(--ink);
+  text-align: center;
+  margin: 0 0 0.25rem;
+  font-size: 1.5rem;
+}
+
+/* ---------- Dialogue lines ---------- */
+
+.lines {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.line {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
 }
 
 td {
   font-family: 'Georgia', serif;
-  color: #040704;
+  color: var(--ink);
 }
 
-input, select, button, select {
+/* Shared field styling (parchment look preserved) */
+input, select, textarea, button {
   font-family: 'Georgia', serif;
-  padding: 8px 12px;
-  margin: 5px;
-  border: 2px solid #573c22;
+  border: 2px solid var(--border-brown);
   border-radius: 6px;
-  background-color: #f5ecd9; /* parchment-like color */
-  color: #040704;
+  background-color: var(--parchment);
+  color: var(--ink);
   box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.1),
-  0 0 8px rgba(139, 94, 60, 0.2);
+              0 0 8px rgba(139, 94, 60, 0.2);
   transition: all 0.2s ease-in-out;
+  font-size: 16px;          /* >=16px stops iOS from zooming on focus */
+  padding: 8px 12px;
+  box-sizing: border-box;
 }
 
-input:hover, select:hover, button:hover, select:hover,
-input:focus, select:focus, button:focus, select:focus {
-  background-color: #f0e2c4;
-  border-color: #a67c52;
+input:hover, select:hover, textarea:hover, button:hover,
+input:focus, select:focus, textarea:focus, button:focus {
+  background-color: var(--parchment-dark);
+  border-color: var(--border-brown-light);
   outline: none;
 }
 
-input, select, button {
+/* The author dropdown stays compact; the line text takes the rest */
+.select {
+  flex: 0 0 auto;
+  max-width: 38%;
   cursor: pointer;
   background: linear-gradient(to bottom, #d9c8a9, #c2a982);
   font-weight: bold;
-  margin: 1em;
-  font-size: large;
+}
+
+.quote {
+  flex: 1 1 auto;
+  width: 100%;
+  min-height: 2.6rem;
+  resize: none;             /* height is managed automatically in JS */
+  overflow: hidden;
+  line-height: 1.4;
+}
+
+select option {
+  background-color: var(--parchment);
+  color: var(--ink);
+  font-family: 'Georgia', serif;
+  font-size: 16px;
+}
+
+/* ---------- Buttons ---------- */
+
+.iconButton {
+  flex: 0 0 auto;
+  width: 2.4rem;
+  height: 2.4rem;
+  padding: 0;
+  font-size: 1.2rem;
+  font-weight: bold;
+  line-height: 1;
+  cursor: pointer;
+  background: linear-gradient(to bottom, #d9c8a9, #c2a982);
+}
+
+.addButton {
+  align-self: flex-start;
+  cursor: pointer;
+  font-weight: bold;
+  background: linear-gradient(to bottom, #d9c8a9, #c2a982);
+}
+
+.addButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.actions {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+}
+
+.buttons {
+  flex: 1 1 0;
+  cursor: pointer;
+  font-weight: bold;
+  font-size: 1rem;
+  background: linear-gradient(to bottom, #d9c8a9, #c2a982);
 }
 
 .buttons:active {
@@ -87,11 +197,108 @@ input, select, button {
   transform: scale(0.98);
 }
 
-select option {
-  background-color: #f5ecd9;  /* parchment-like */
-  color: #040704;
+/* ---------- Meta fields ---------- */
+
+.metaField {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.metaField label {
   font-family: 'Georgia', serif;
-  font-size: 16px;
+  color: var(--ink);
+  font-weight: bold;
+}
+
+/* ---------- Preview panel ---------- */
+
+.previewContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  background-color: rgba(245, 236, 217, 0.92);
+  background-image: url('/quote_texture.jpeg');
+  background-size: cover;
+  background-blend-mode: multiply;
+  border: 2px solid var(--border-brown);
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  padding: 24px;
+}
+
+.previewEmpty {
+  font-family: 'Georgia', serif;
+  color: #6b5a44;
+  font-style: italic;
+}
+
+.previewBody {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.previewLine {
+  font-family: 'Georgia', serif;
+  color: var(--ink);
+  margin: 0;
+  line-height: 1.5;
+}
+
+.previewAuthor {
+  font-weight: bold;
+}
+
+.previewMeta {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  margin-top: 0.75rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid rgba(87, 60, 34, 0.4);
+  font-family: 'Georgia', serif;
+  color: #5a4a36;
+  font-size: 0.9rem;
+}
+
+.previewExpl {
+  font-style: italic;
+}
+
+/* ---------- Mobile tuning ---------- */
+
+@media (max-width: 600px) {
+  .page {
+    padding: 0.75rem 0.75rem 2rem;
+  }
+
+  .contentContainer {
+    padding: 80px 16px 20px;  /* less reserved header space on small screens */
+  }
+
+  .previewContainer {
+    padding: 16px;
+  }
+
+  /* Stack author over the line text when space is tight */
+  .line {
+    flex-wrap: wrap;
+  }
+
+  .select {
+    max-width: none;
+    flex: 1 1 100%;
+  }
+
+  .quote {
+    flex: 1 1 100%;
+  }
+
+  .iconButton {
+    width: 2.2rem;
+    height: 2.2rem;
+  }
 }
 
 @keyframes scrollAnimation {

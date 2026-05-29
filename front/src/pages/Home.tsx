@@ -1,6 +1,6 @@
 'use client'
 
-import {useState, useEffect, useRef} from 'react';
+import {useState, useEffect, useRef, useCallback} from 'react';
 import RuneBackground from "../components/RuneBackground";
 
 type SentenceObject = {
@@ -15,14 +15,17 @@ type QuoteObject = {
     sentences: SentenceObject[];
 }
 
+const EMPTY_AUTHOR = '-------';
+const MAX_LINES = 8;
+
 export default function Home() {
-    const EMPTY_AUTHOR = '-------'
-    const [dialogFields, setDialogFields] = useState([{author: '', sentence: ''}]);
+    const [dialogFields, setDialogFields] = useState([{author: EMPTY_AUTHOR, sentence: ''}]);
     const [authors, setAuthors] = useState<string[]>([EMPTY_AUTHOR]);
     const [explanation, setExplanation] = useState('');
     const [date, setDate] = useState('');
     const [focusIndex, setFocusIndex] = useState<number | null>(null);
-    const selectRefs = useRef<(HTMLSelectElement | null)[]>([]);
+
+    const textareaRefs = useRef<(HTMLTextAreaElement | null)[]>([]);
 
     useEffect(() => {
         document.title = "Add new Quote";
@@ -45,109 +48,132 @@ export default function Home() {
         fetchAuthors();
     }, []);
 
+    const autoResize = (el: HTMLTextAreaElement | null) => {
+        if (!el) return;
+        el.style.height = 'auto';
+        el.style.height = `${el.scrollHeight}px`;
+    };
 
     useEffect(() => {
         if (focusIndex === null) return;
-        const select = selectRefs.current[focusIndex];
-        if (select) {
-            select.focus();
-            setFocusIndex(null);
+        const el = textareaRefs.current[focusIndex];
+        if (el) {
+            el.focus();
+            autoResize(el);
         }
+        setFocusIndex(null);
     }, [focusIndex]);
 
-    const handleInputChange = (index: number, field: string, value: string) => {
-        const updatedFields = [...dialogFields];
-        if (field === 'quote')
-            updatedFields[index].sentence = value;
-        else if (field === 'author')
-            updatedFields[index].author = value;
-        setDialogFields(updatedFields);
+    const handleAuthorChange = (index: number, value: string) => {
+        setDialogFields(prev =>
+            prev.map((row, i) => (i === index ? {...row, author: value} : row))
+        );
     };
 
-    const addField = () => {
-        if (dialogFields.length >= 8) return;
-        setDialogFields([...dialogFields, {author: '', sentence: ''}]);
-        setFocusIndex(dialogFields.length);
+    const handleSentenceChange = (index: number, value: string) => {
+        setDialogFields(prev =>
+            prev.map((row, i) => (i === index ? {...row, sentence: value} : row))
+        );
+    };
+
+    const addField = useCallback(() => {
+        setDialogFields(prev => {
+            if (prev.length >= MAX_LINES) return prev;
+            setFocusIndex(prev.length);
+            return [...prev, {author: EMPTY_AUTHOR, sentence: ''}];
+        });
+    }, []);
+
+    const removeField = (index: number) => {
+        setDialogFields(prev =>
+            prev.length === 1
+                ? [{author: EMPTY_AUTHOR, sentence: ''}] // keep at least one empty row
+                : prev.filter((_, i) => i !== index)
+        );
     };
 
     function generate_quote() {
-        const list = dialogFields.filter((e) =>  e.author !== EMPTY_AUTHOR);
-        const pickedDate = new Date(date)
-        const date_string = date === '' ? '----' : pickedDate.toLocaleString('default', { month: 'long' }) + " " + pickedDate.getFullYear();
+        const list = dialogFields.filter(
+            (e) => e.author !== EMPTY_AUTHOR && e.sentence.trim() !== ''
+        );
+        const pickedDate = new Date(date);
+        const date_string = date === ''
+            ? '----'
+            : pickedDate.toLocaleString('default', {month: 'long'}) + " " + pickedDate.getFullYear();
         const explanation_string = (explanation.length <= 1) ? "----" : explanation;
 
-        if (list.length <= 0){
-            alert('Can\'t submit quote without author or data');
-            clear_input();
-            return null
+        if (list.length <= 0) {
+            alert('Can\'t submit a quote without at least one author and line.');
+            return null;
         }
 
-        const sentences: SentenceObject[] = []
-        for (let i = 0; i < list.length; i++) {
-            sentences.push({
-                number: i,
-                author: list[i].author,
-                sentence: list[i].sentence,
-            })
-        }
+        const sentences: SentenceObject[] = list.map((item, i) => ({
+            number: i,
+            author: item.author,
+            sentence: item.sentence,
+        }));
+
         const quoteObject: QuoteObject = {
             date: date_string,
             explanation: explanation_string,
             sentences: sentences
         };
         return JSON.stringify(quoteObject);
-
     }
 
     async function send_quote(generateQuote: null | string) {
-        if (generateQuote === null)
-            return
+        if (generateQuote === null) return;
 
         const res = await fetch('/api/quotes', {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
             body: generateQuote,
             credentials: 'include'
-        })
-
-        console.log(res)
+        });
 
         if (res.ok) {
-            alert("Quote submitted")
-            clear_input()
+            alert("Quote submitted");
+            clear_input();
         } else {
-            const data = await res.json()
-            alert(data.error || 'Quote submit failed')
+            const data = await res.json().catch(() => ({}));
+            alert(data.error || 'Quote submit failed');
         }
     }
 
     function clear_input() {
-        setExplanation('')
-        setDate('')
-        setDialogFields([{author: '', sentence: ''}])
+        setExplanation('');
+        setDate('');
+        setDialogFields([{author: EMPTY_AUTHOR, sentence: ''}]);
     }
 
     const handleSubmit = async () => {
         await send_quote(generate_quote());
     };
 
+    const previewSentences = dialogFields.filter(
+        (e) => e.author !== EMPTY_AUTHOR && e.sentence.trim() !== ''
+    );
+    const previewDate = date === ''
+        ? ''
+        : new Date(date).toLocaleString('default', {month: 'long'}) + " " + new Date(date).getFullYear();
+
     return (
-        <div className="flex h-screen justify-center items-center">
+        <div className="page">
             <RuneBackground/>
 
-            <div className="rounded-2xl shadow-xl p-8 bg-cover bg-center w-96 contentContainer">
-                <table className="table">
-                    <tbody>
-                    {dialogFields.map((row, index) => (
-                        <tr key={index}>
-                            <td>
+            <div className="layout">
+                {/* ---------- EDITOR ---------- */}
+                <div className="contentContainer">
+                    <h1 className="cardTitle">Add a Quote</h1>
+
+                    <div className="lines">
+                        {dialogFields.map((row, index) => (
+                            <div className="line" key={index}>
                                 <select
-                                    ref={(el) => {selectRefs.current[index] = el}}
                                     className="select"
                                     value={row.author}
-                                    onChange={(e) =>
-                                        handleInputChange(index, 'author', e.target.value)
-                                    }
+                                    onChange={(e) => handleAuthorChange(index, e.target.value)}
+                                    aria-label={`Author for line ${index + 1}`}
                                 >
                                     {authors.map((a) => (
                                         <option key={a} value={a} className="option">
@@ -155,64 +181,102 @@ export default function Home() {
                                         </option>
                                     ))}
                                 </select>
-                            </td>
-                            <td>
-                                <input
-                                    type="text"
+
+                                <textarea
+                                    ref={(el) => { textareaRefs.current[index] = el; }}
                                     className="quote"
+                                    rows={1}
+                                    placeholder="Type the line…"
                                     value={row.sentence}
-                                    onChange={(e) =>
-                                        handleInputChange(index, 'quote', e.target.value)
-                                    }
+                                    onChange={(e) => {
+                                        handleSentenceChange(index, e.target.value);
+                                        autoResize(e.target);
+                                    }}
                                     onKeyDown={(e) => {
-                                        if (e.key === 'Enter') {
-                                            e.preventDefault(); // Prevent form submission or default enter behavior
+                                        // Power-user shortcut: Ctrl/Cmd+Enter adds a line.
+                                        if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
+                                            e.preventDefault();
                                             addField();
                                         }
                                     }}
+                                    aria-label={`Line ${index + 1} text`}
                                 />
-                            </td>
-                        </tr>
-                    ))}
-                    </tbody>
-                </table>
-                <table className="table">
-                    <tbody>
-                    <tr>
-                        <td>Explanation</td>
-                        <td>
-                            <input
-                                type="text"
-                                className="quote"
-                                value={explanation}
-                                onChange={(e) => setExplanation(e.target.value)}
-                            />
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>Date</td>
-                        <td>
-                            <input
-                                type="date"
-                                className="quote"
-                                value={date}
-                                onChange={(e) => setDate(e.target.value)}
-                            />
-                        </td>
-                    </tr>
-                    </tbody>
-                </table>
 
-                <div>
-                    <button className="buttons" onClick={handleSubmit}>
-                        Submit
+                                <button
+                                    type="button"
+                                    className="iconButton"
+                                    onClick={() => removeField(index)}
+                                    aria-label={`Remove line ${index + 1}`}
+                                    title="Remove line"
+                                >
+                                    ×
+                                </button>
+                            </div>
+                        ))}
+                    </div>
+
+                    <button
+                        type="button"
+                        className="addButton"
+                        onClick={addField}
+                        disabled={dialogFields.length >= MAX_LINES}
+                    >
+                        + Add line
                     </button>
-                    <button className="buttons" onClick={clear_input}>
-                        Clear
-                    </button>
+
+                    <div className="metaField">
+                        <label htmlFor="explanation">Explanation</label>
+                        <textarea
+                            id="explanation"
+                            className="quote"
+                            rows={2}
+                            placeholder="Optional context…"
+                            value={explanation}
+                            onChange={(e) => {
+                                setExplanation(e.target.value);
+                                autoResize(e.target);
+                            }}
+                        />
+                    </div>
+
+                    <div className="metaField">
+                        <label htmlFor="date">Date</label>
+                        <input
+                            id="date"
+                            type="date"
+                            className="quote"
+                            value={date}
+                            onChange={(e) => setDate(e.target.value)}
+                        />
+                    </div>
+
+                    <div className="actions">
+                        <button className="buttons" onClick={handleSubmit}>Submit</button>
+                        <button className="buttons" onClick={clear_input}>Clear</button>
+                    </div>
+                </div>
+
+                {/* ---------- PREVIEW ---------- */}
+                <div className="previewContainer">
+                    <h2 className="cardTitle">Preview</h2>
+
+                    {previewSentences.length === 0 ? (
+                        <p className="previewEmpty">Pick an author and type a line to see the preview.</p>
+                    ) : (
+                        <div className="previewBody">
+                            {previewSentences.map((s, i) => (
+                                <p className="previewLine" key={i}>
+                                    <span className="previewAuthor">{s.author}:</span> {s.sentence}
+                                </p>
+                            ))}
+                            <div className="previewMeta">
+                                <span>{previewDate || '----'}</span>
+                                {explanation.length > 1 && <span className="previewExpl">{explanation}</span>}
+                            </div>
+                        </div>
+                    )}
                 </div>
             </div>
-
         </div>
     );
 }
