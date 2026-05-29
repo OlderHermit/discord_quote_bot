@@ -10,15 +10,23 @@
   --gradient-button: linear-gradient(to bottom, #d9c8a9, #c2a982);
 }
 
+/* Body centers every page (Login, Approve, Home) — restored from original.
+   min-height (not fixed height) keeps it scroll-safe for tall content. */
 body {
   margin: 0;
   padding: 0;
   position: relative;
-  min-height: 100vh;            /* was height:100vh + flex-center; now scrolls */
+  min-height: 100vh;
+  min-height: 100dvh;          /* accounts for mobile browser toolbars */
+  display: flex;
+  flex-direction: column;
+  justify-content: center;     /* vertical center */
+  align-items: center;         /* horizontal center */
   background-color: #ffe4b2;
   overflow-x: hidden;
   background-image: url('/main_texture.jpeg');
-  background-size: auto;
+  background-size: auto;        /* wide screens: tile the texture at native size */
+  background-repeat: repeat;
   background-blend-mode: multiply;
   font-family: var(--font-geist-sans), sans-serif;
 }
@@ -28,8 +36,7 @@ body {
 }
 
 /* =================================================================
-   SHARED CARD  —  used by Login (and any page with .contentContainer)
-   Restored to the original look so Login is unchanged.
+   SHARED CARD — used by Login. Restored to original look.
    ================================================================= */
 .contentContainer {
   position: relative;
@@ -61,8 +68,7 @@ td {
 }
 
 /* =================================================================
-   BASE FIELD STYLING  —  applies everywhere (Login, Approve, Home)
-   Text fields stay parchment; buttons/selects get the gradient below.
+   BASE FIELDS — Login, Approve, Home
    ================================================================= */
 input, select, textarea, button {
   font-family: 'Georgia', serif;
@@ -73,9 +79,15 @@ input, select, textarea, button {
   box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.1),
               0 0 8px rgba(139, 94, 60, 0.2);
   transition: all 0.2s ease-in-out;
-  font-size: 16px;             /* >=16px stops iOS zoom-on-focus */
+  font-size: 16px;
   padding: 8px 12px;
   box-sizing: border-box;
+}
+
+/* Readable but clearly-muted placeholder (was near-invisible). */
+::placeholder {
+  color: #8a7a5e;
+  opacity: 1;
 }
 
 input:hover, select:hover, textarea:hover, button:hover,
@@ -85,10 +97,8 @@ input:focus, select:focus, textarea:focus, button:focus {
   outline: none;
 }
 
-/* Buttons + selects get the themed gradient.
-   Covers <button>, <input type=button|submit|reset>, and <select>
-   so Login's Log-In button and Approve's Accept/Discard stay themed,
-   while text inputs / date / textareas remain flat parchment. */
+/* Buttons + selects get the gradient; text fields stay flat parchment.
+   Covers Login's <button> and Approve's <input type=button>. */
 button,
 input[type="button"],
 input[type="submit"],
@@ -114,16 +124,16 @@ select option {
 }
 
 /* =================================================================
-   HOME PAGE  —  editor + live preview, responsive
-   Scoped to its own classes so it never touches Login/Approve.
+   HOME — editor + preview
    ================================================================= */
 .page {
   position: relative;
   z-index: 1;
+  width: 100%;
   min-height: 100vh;
   display: flex;
-  justify-content: center;
-  align-items: flex-start;
+  justify-content: center;   /* horizontal center of the layout block */
+  align-items: center;       /* vertical center of the layout block */
   padding: 1.5rem 1rem 3rem;
   box-sizing: border-box;
 }
@@ -134,7 +144,7 @@ select option {
   display: flex;
   flex-wrap: wrap;
   gap: 1.5rem;
-  align-items: flex-start;
+  align-items: flex-start;   /* the two cards stay top-aligned to each other */
   justify-content: center;
   width: 100%;
   max-width: 1100px;
@@ -143,25 +153,42 @@ select option {
 .editorCard,
 .previewContainer {
   flex: 1 1 380px;
-  min-width: 0;                /* allow shrinking below content width on mobile */
+  min-width: 0;
   max-width: 520px;
   box-sizing: border-box;
 }
 
+/* The background art + brightness live on a ::before layer so they don't
+   wash out the form fields / text sitting on top. */
 .editorCard {
+  position: relative;
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
+  box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
+  border-radius: 5px;
+  transition: 0.3s;
+  padding: 110px 24px 28px;
+  overflow: hidden;
+}
+
+.editorCard::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 0;
   background-image: url('/quote_background.jpg'), url('/quote_texture.jpeg');
   background-size: 100%, cover;
   background-position: top, center;
   background-repeat: no-repeat, repeat;
   background-blend-mode: multiply;
   filter: brightness(160%);
-  box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
   border-radius: 5px;
-  transition: 0.3s;
-  padding: 110px 24px 28px;
+}
+
+.editorCard > * {
+  position: relative;
+  z-index: 1;               /* keep all real content above the art layer */
 }
 
 .cardTitle {
@@ -189,15 +216,16 @@ select option {
   max-width: 38%;
 }
 
+/* Flat, high-contrast text field (no gradient, dark ink). */
 .quote {
   flex: 1 1 auto;
   width: 100%;
   min-height: 2.6rem;
-  resize: none;               /* height managed in JS */
+  resize: none;
   overflow: hidden;
   line-height: 1.4;
-  /* override the gradient: text field should be flat parchment */
-  background: var(--parchment);
+  background: #fbf5e6;       /* slightly brighter parchment for contrast */
+  color: var(--ink);
   font-weight: normal;
   cursor: text;
 }
@@ -211,14 +239,8 @@ select option {
   line-height: 1;
 }
 
-.addButton {
-  align-self: flex-start;
-}
-
-.addButton:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
+.addButton { align-self: flex-start; }
+.addButton:disabled { opacity: 0.5; cursor: not-allowed; }
 
 .actions {
   display: flex;
@@ -243,17 +265,16 @@ select option {
   font-weight: bold;
 }
 
+/* Warm parchment preview (was gray: caused by multiply over a dark texture). */
 .previewContainer {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
-  background-color: rgba(245, 236, 217, 0.92);
-  background-image: url('/quote_texture.jpeg');
-  background-size: cover;
-  background-blend-mode: multiply;
+  background-color: #f3e7cb;
   border: 2px solid var(--border-brown);
   border-radius: 8px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2),
+              inset 0 0 30px rgba(139, 94, 60, 0.12);
   padding: 24px;
 }
 
@@ -293,6 +314,13 @@ select option {
 .previewExpl { font-style: italic; }
 
 @media (max-width: 600px) {
+  /* Narrow viewport: stretch the texture to always cover, no tiling gaps. */
+  body {
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-attachment: fixed;   /* texture stays put while content scrolls */
+  }
+
   .page { padding: 0.75rem 0.75rem 2rem; }
   .editorCard { padding: 80px 16px 20px; }
   .previewContainer { padding: 16px; }
