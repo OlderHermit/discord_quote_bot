@@ -129,14 +129,12 @@ async def on_member_update(before: Member, after: Member):
 def check_sqlite_integrity():
     try:
         db = os.path.join(os.path.curdir, globals.path_to_db)
-        db_back = os.path.join(os.path.curdir, globals.path_to_db + '_backup')
         with sqlite3.connect(db) as conn:
             cursor = conn.cursor()
             cursor.execute("PRAGMA integrity_check;")
             result = cursor.fetchone()
             if result[0] == "ok":
                 print("Database is intact.")
-                shutil.copy(db, db_back)
                 return True
             else:
                 print("Database is corrupted:", result[0])
