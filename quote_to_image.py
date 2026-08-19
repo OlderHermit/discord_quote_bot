@@ -1,12 +1,9 @@
 import math
-import random
-
 from PIL import Image, ImageDraw, ImageFont
 from PIL.ImageFont import FreeTypeFont
-from sqlalchemy import Engine, select
-from sqlalchemy.orm import Session
 
-from orm import Quote, Author, Sentence
+import globals
+from orm import Quote
 
 default_font_color = (255, 255, 255)
 default_background_color = (0x27, 0x29, 0x2E)
@@ -112,30 +109,7 @@ def prepare_dialogue(quote: Quote, max_width: int, fonts: dict[str, FreeTypeFont
     return centered
 
 
-def get_random_quote(session: Session):
-    data = session.execute(select(Quote)
-        .join(Sentence)
-        .join(Author)
-        .where(Quote.used.is_(False))
-        .where(Quote.deleted.is_(False))
-    ).scalars().all()
-
-    if len(data) == 0:
-        reset_used_quotes(session)
-        return get_random_quote(session)
-
-    quote: Quote = random.choice(data)
-    return quote
-
-
-def reset_used_quotes(session: Session):
-    quotes = session.execute(select(Quote)).scalars().all()
-    for q in quotes:
-        q.used = False
-    session.commit()
-    session.close()
-
-def generate_image_for_quote(quote: Quote):
+def _generate_image_for_quote(quote: Quote, save=True):
     width = 600
     text_position = (50, 50)
     text_color = (255, 255, 255)
@@ -168,20 +142,14 @@ def generate_image_for_quote(quote: Quote):
                 draw.text((x, y), char, fill=color, font=font, embedded_color=True)
             x += draw.textlength(char, font=font)
 
-    image.save("text_image.png")
+    if save:
+        image.save("text_image.png")
+    return image
 
 
-async def generate_image(engine: Engine):
-    session = Session(engine)
-    try:
-        quote = get_random_quote(session)
-        generate_image_for_quote(quote)
+async def generate_image():
+    quote = globals.db.get_random_valid_quote()
+    _generate_image_for_quote(quote)
+    globals.db.mark_quote_as_used(quote)
 
-        quote.used = True
-        session.commit()
-        return quote.id
-    except Exception as e:
-        session.rollback()
-        raise e
-    finally:
-        session.close()
+    return quote.id
