@@ -1,14 +1,15 @@
+import asyncio
 import datetime
+import json
 import os
 import secrets
 
 import aiohttp_cors
 import jwt
 from aiohttp import web
-from sqlalchemy import select, and_
+from sqlalchemy.exc import IntegrityError
 
 import globals
-from orm import Quote, Author, Sentence
 
 
 async def start_server():
@@ -39,67 +40,55 @@ async def start_server():
 
     runner = web.AppRunner(app)
     await runner.setup()
-    site = web.TCPSite(runner, globals.config.address, int(globals.config.port))
+    site = web.TCPSite(runner, os.getenv("LOCAL_ADDRESS"), int(os.getenv("LOCAL_PORT")))
     await site.start()
     print("website is on")
 
 
 async def return_authors_data(_):
-    authors = list(map(lambda a: a.id, globals.session.scalars(select(Author)).all()))
+    authors = list(map(lambda a: a.id, globals.db.get_authors()))
     return web.json_response(authors)
-
 
 async def submit_through_web(request):
     try:
-        data = (await request.json())
-
-        new_quote = Quote(
-            date=data['date'],
-            explanation=data['explanation'],
-            confirmed=False
+        data = await request.json()
+        quote_date = data["date"]
+        explanation = data["explanation"]
+        sentences = [
+            (s["sentence"], s["author"]) for s in data["sentences"]
+        ]
+    except (KeyError, TypeError, ValueError, json.JSONDecodeError):
+        return web.json_response(
+            {"status": "error", "message": "Invalid payload"}, status=400
         )
-        globals.session.add(new_quote)
-        globals.session.flush()
 
-        for i, sentence in enumerate(data['sentences']):
-            new_sentence = Sentence(
-                number=i,
-                sentence=sentence['sentence'],
-                author_id=sentence['author'],
-                quote_id=new_quote.id,
-            )
-            globals.session.add(new_sentence)
+    if not sentences:
+        return web.json_response(
+            {"status": "error", "message": "At least one sentence required"},
+            status=400,
+        )
 
-        globals.session.commit()
+    try:
+        quote_id = await asyncio.to_thread(
+            globals.db.add_submission, quote_date, explanation, sentences
+        )
+    except IntegrityError:
+        return web.json_response(
+            {"status": "error", "message": "Unknown author"}, status=400
+        )
+    except Exception:
+        # log.exception("submit failed")
+        return web.json_response(
+            {"status": "error", "message": "Internal error"}, status=500
+        )
 
-        return web.json_response({'status': 'success', 'message': 'Quote added to DB'})
-    except Exception as e:
-        print(f"Submit error: {e}")  # albo logger
-        return web.json_response({'status': 'error', 'message': 'Internal error'}, status=500)
-
-
-async def check_if_quote_exists_for_web(request):
-    quote_id = (await request.json())['id']
-    if quote_id is None:
-        raise ValueError("quote_id couldn't be read from request")
-
-    candidate = (globals.session.execute(
-        select(Quote)
-        .where(Quote.id.is_(quote_id))
-        .where(and_(Quote.confirmed.is_(False), Quote.deleted.is_(False)))
-    ).scalar_one_or_none())
-
-    if candidate is None:
-        raise IndexError('There was no quote for given id')
-
-    return candidate
+    return web.json_response({"status": "success", "id": quote_id})
 
 
 async def approve_through_web(request):
     try:
-        candidate = await check_if_quote_exists_for_web(request)
-        candidate.confirmed = True
-        globals.session.commit()
+        quote_id = (await request.json())['id']
+        globals.db.approve_quote(quote_id)
         return web.json_response({'status': 'success', 'message': 'Quote approved'})
     except Exception as e:
         print(f"Submit error: {e}")  # albo logger
@@ -108,9 +97,8 @@ async def approve_through_web(request):
 
 async def delete_through_web(request):
     try:
-        candidate = await check_if_quote_exists_for_web(request)
-        candidate.deleted = True
-        globals.session.commit()
+        quote_id = (await request.json())['id']
+        globals.db.delete_quote(quote_id)
         return web.json_response({'status': 'success', 'message': 'Quote discarded'})
     except Exception as e:
         print(f"Submit error: {e}")  # albo logger
@@ -118,16 +106,8 @@ async def delete_through_web(request):
 
 
 async def return_nominations_data(_):
-    quotes_to_accept = list(map(lambda q: (q[0].as_dict()),
-                                globals.session.execute(
-                                    select(Quote)
-                                    .join(Sentence)
-                                    .where(Quote.confirmed.is_(False))
-                                    .where(Quote.deleted.is_(False))
-                                    .group_by(Quote.id)
-                                ).all()))
     return web.json_response(
-        quotes_to_accept
+        [q[0].as_dict() for q in globals.db.get_candidate_quotes()]
     )
 
 
