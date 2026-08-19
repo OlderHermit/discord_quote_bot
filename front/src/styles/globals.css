@@ -21,12 +21,14 @@ body {
   display: flex;
   flex-direction: column;
   justify-content: center;     /* vertical center */
-  align-items: center;         /* horizontal center */
-  background-color: #ffe4b2;
-  overflow-x: hidden;
-  background-image: url('/main_texture.jpeg');
-  background-size: auto;        /* wide screens: tile the texture at native size */
-  background-repeat: repeat;
+  align-items: center;
+
+  background-color: #ffe4b2;                      /* fallback only */
+  background-image:
+    linear-gradient(#ffe4b2, #ffe4b2),
+    url('/main_texture.jpeg');
+  background-size: auto, auto;
+  background-repeat: repeat, repeat;
   background-blend-mode: multiply;
   font-family: var(--font-geist-sans), sans-serif;
 }
@@ -370,7 +372,6 @@ select option {
   body {
     background-size: cover;
     background-repeat: no-repeat;
-    background-attachment: fixed;   /* texture stays put while content scrolls */
   }
 
   .page { padding: 0.75rem 0.75rem 2rem; }

@@ -37,3 +37,7 @@
         opacity: 0;
     }
 }
+
+@media (prefers-reduced-motion: reduce) {
+  .runesContainer, .rune { animation: none; opacity: 0.35; }
+}
