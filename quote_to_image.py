@@ -147,9 +147,9 @@ def _generate_image_for_quote(quote: Quote, save=True):
     return image
 
 
-async def generate_image():
+def generate_image():
     quote = globals.db.get_random_valid_quote()
     _generate_image_for_quote(quote)
-    globals.db.mark_quote_as_used(quote)
+    globals.db.mark_quote_as_used(quote.id)
 
     return quote.id

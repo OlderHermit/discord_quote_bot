@@ -2,15 +2,20 @@ import sqlite3
 from contextlib import closing
 from datetime import datetime, timezone
 from pathlib import Path
+from collections.abc import Sequence
 
-from sqlalchemy import Engine, create_engine, select, update, func, Sequence, event
-from sqlalchemy.orm import Session, sessionmaker
+from sqlalchemy import Engine, create_engine, select, update, func, event
+from sqlalchemy.orm import Session, sessionmaker, selectinload
 
 from orm import Config, Base, Quote, Author, Sentence
 
 
 class DatabaseCorrupt(RuntimeError):
     pass
+
+class ValidQuotesMissing(RuntimeError):
+    pass
+
 
 
 class DBBridge():
@@ -72,6 +77,9 @@ class DBBridge():
     def get_random_valid_quote(self) -> Quote:
         selection = (
             select(Quote)
+            .options(selectinload(Quote.sentences)
+                     .joinedload(Sentence.author)
+                     .joinedload(Author.color))
             .where(Quote.used.is_(False), Quote.deleted.is_(False), Quote.confirmed.is_(True))
             .order_by(func.random())
             .limit(1)
@@ -83,7 +91,20 @@ class DBBridge():
                 return quote
 
             self._reset_used_quotes(session)
-            return session.scalars(selection).first()
+            result = session.scalars(selection).first()
+            if not result:
+                raise ValidQuotesMissing
+            return result
+
+    def get_specific_quote_with_joins(self, q_id) -> Quote:
+        with Session(self.engine) as session:
+            return session.scalar(
+                select(Quote)
+                .options(selectinload(Quote.sentences)
+                         .joinedload(Sentence.author)
+                         .joinedload(Author.color))
+                .where(Quote.id == q_id, Quote.used.is_(False), Quote.deleted.is_(False), Quote.confirmed.is_(True))
+            )
 
     @staticmethod
     def _reset_used_quotes(session: Session) -> None:
