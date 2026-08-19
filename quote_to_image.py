@@ -1,10 +1,13 @@
 import math
+from pathlib import Path
+
 from PIL import Image, ImageDraw, ImageFont
 from PIL.ImageFont import FreeTypeFont
 
-import globals
+import context
 from orm import Quote
 
+IMAGE_PATH = Path(__file__).parent / "text_image.png"
 default_font_color = (255, 255, 255)
 default_background_color = (0x27, 0x29, 0x2E)
 
@@ -146,10 +149,11 @@ def _generate_image_for_quote(quote: Quote, save=True):
         image.save("text_image.png")
     return image
 
+def render_quote_image(quote: Quote, path: Path = IMAGE_PATH) -> None:
+    _generate_image_for_quote(quote).save(path)
 
-def generate_image():
-    quote = globals.db.get_random_valid_quote()
-    _generate_image_for_quote(quote)
-    globals.db.mark_quote_as_used(quote.id)
-
+def generate_daily_image() -> int:
+    quote = context.db.get_random_valid_quote()
+    render_quote_image(quote)
+    context.db.mark_quote_as_used(quote.id)
     return quote.id

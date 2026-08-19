@@ -9,10 +9,9 @@ import jwt
 from aiohttp import web
 from sqlalchemy.exc import IntegrityError
 
-import globals
+import context
 
-
-async def start_server():
+async def start_server() -> web.AppRunner:
     app = web.Application()
 
     app.add_routes([
@@ -43,15 +42,16 @@ async def start_server():
     site = web.TCPSite(runner, os.getenv("LOCAL_ADDRESS"), int(os.getenv("LOCAL_PORT")))
     await site.start()
     print("website is on")
+    return runner
 
 
-def return_authors_data(_):
-    authors = [a.id for a in  globals.db.get_authors()]
+async def return_authors_data(_):
+    authors = [a.id for a in context.db.get_authors()]
     return web.json_response(authors)
 
-def submit_through_web(request):
+async def submit_through_web(request):
     try:
-        data = request.json()
+        data = (await request.json())
         quote_date = data["date"]
         explanation = data["explanation"]
         sentences = [
@@ -69,8 +69,8 @@ def submit_through_web(request):
         )
 
     try:
-        quote_id = asyncio.to_thread(
-            globals.db.add_submission, quote_date, explanation, sentences
+        quote_id = await asyncio.to_thread(
+            context.db.add_submission, quote_date, explanation, sentences
         )
     except IntegrityError:
         return web.json_response(
@@ -85,39 +85,39 @@ def submit_through_web(request):
     return web.json_response({"status": "success", "id": quote_id})
 
 
-def approve_through_web(request):
+async def approve_through_web(request):
     try:
-        quote_id = request.json()['id']
-        globals.db.approve_quote(quote_id)
+        quote_id = (await request.json())['id']
+        context.db.approve_quote(quote_id)
         return web.json_response({'status': 'success', 'message': 'Quote approved'})
     except Exception as e:
         print(f"Submit error: {e}")  # albo logger
         return web.json_response({'status': 'error', 'message': 'Internal error'}, status=500)
 
 
-def delete_through_web(request):
+async def delete_through_web(request):
     try:
-        quote_id = request.json()['id']
-        globals.db.delete_quote(quote_id)
+        quote_id = (await request.json())['id']
+        context.db.delete_quote(quote_id)
         return web.json_response({'status': 'success', 'message': 'Quote discarded'})
     except Exception as e:
         print(f"Submit error: {e}")  # albo logger
         return web.json_response({'status': 'error', 'message': 'Internal error'}, status=500)
 
 
-def return_nominations_data(_):
+async def return_nominations_data(_):
     return web.json_response(
-        [q[0].as_dict() for q in globals.db.get_candidate_quotes()]
+        [q.as_dict() for q in context.db.get_candidate_quotes()]
     )
 
 
-def login(request):
+async def login(request):
     try:
-        data = request.json()
+        data = (await request.json())
         password = data.get("password")
 
         if not isinstance(password, str) or len(password) <= 0:
-            web.json_response({"error": "password invalid format" }, status=400)
+            return web.json_response({"error": "password invalid format" }, status=400)
 
         if secrets.compare_digest(password, os.getenv('MASTER_PASS') or ''):
             role = "master"
@@ -131,10 +131,11 @@ def login(request):
             "exp": datetime.datetime.now(datetime.UTC) + datetime.timedelta(hours=1)
         }, os.getenv('SECRET_KEY'), algorithm="HS256")
 
-        resp = web.json_response({'message': 'Login successful'}, status=200)
+        resp = web.json_response({'message': 'Login successful', 'role': role})
         resp.set_cookie(
             'token',
             token,
+            httponly=True,
             secure=True,
             samesite='Strict',
             max_age=3600
@@ -144,12 +145,12 @@ def login(request):
         return web.json_response({"error": str(e)}, status=400)
 
 
-def check_token(request):
-    return web.json_response({'message': 'Token valid', 'token': request.cookies.get('token')}, status=200)
+async def check_token(request):
+    return web.json_response({'role': request['jwt'].get('role')})
 
 
 @web.middleware
-def auth_middleware(request, handler):
+async def auth_middleware(request, handler):
     if request.path == "/login" or request.method == "OPTIONS":
         return handler(request)
 
@@ -160,6 +161,7 @@ def auth_middleware(request, handler):
 
     try:
         payload = jwt.decode(token, os.getenv('SECRET_KEY'), algorithms=["HS256"])
+        request['jwt'] = payload
     except jwt.ExpiredSignatureError:
         print(f"Expired token from ip {request.remote}")
         return web.json_response({'message': 'Token expired'}, status=401)
