@@ -10,128 +10,225 @@ const runes = [
     'ᛰ'
 ];
 
-const runesSizes: Record<string, number>  = {
-    'ᚠ':10.5, 'ᚡ':10.5, 'ᚢ':9.5, 'ᚣ':8.3, 'ᚤ':9.5, 'ᚥ':9.8, 'ᚦ':7.6, 'ᚧ':7.6, 'ᚨ':5.9, 'ᚩ':8.4, 'ᚪ':8.4, 'ᚫ':7.5, 'ᚬ':7.6, 'ᚭ':5.9, 'ᚮ':5.9, 'ᚯ':7.6,
-    'ᚰ':7.6, 'ᚱ':8.4, 'ᚲ':5.0, 'ᚳ':6.4, 'ᚴ':8.7, 'ᚵ':8.7, 'ᚶ':8.7, 'ᚷ':7.7, 'ᚸ':7.7, 'ᚹ':8.4, 'ᚺ':9.6, 'ᚻ':9.6, 'ᚼ':7.6, 'ᚽ':4.3, 'ᚾ':7.6, 'ᚿ':5.9,
-    'ᛀ':7.6, 'ᛁ':4.2, 'ᛂ':4.2, 'ᛃ':8.1, 'ᛄ':5.8, 'ᛅ':7.6, 'ᛆ':5.9, 'ᛇ':7.6, 'ᛈ':8.4, 'ᛉ':8.6, 'ᛊ':6.1, 'ᛋ':9.1, 'ᛌ':4.2, 'ᛍ':4.2, 'ᛎ':7.6, 'ᛏ':7.6,
-    'ᛐ':5.9, 'ᛑ':5.9, 'ᛒ':8.4, 'ᛓ':5.9, 'ᛔ':8.5, 'ᛕ':8.1, 'ᛖ':10.1, 'ᛗ':10.1, 'ᛘ':9.0, 'ᛙ':4.2, 'ᛚ':5.9, 'ᛛ':5.9, 'ᛜ':7.2, 'ᛝ':7.8, 'ᛞ':10.1, 'ᛟ':7.5,
-    'ᛠ':8.9, 'ᛡ':7.6, 'ᛢ':8.9, 'ᛣ':8.6, 'ᛤ':7.7, 'ᛥ':10.1, 'ᛦ':9.0, 'ᛧ':4.2, 'ᛨ':7.6, 'ᛩ':8.4, 'ᛪ':9.7, '᛫':4.7, '᛬':3.5, '᛭':10.3, 'ᛮ':7.6, 'ᛯ':9.0,
-    'ᛰ':9.1
-};
+const GAP = 6;
+const MAX_RUNES = 200;
+/** One rune per this many px² of viewport, so phones stay sparse. */
+const AREA_PER_RUNE = 12_000;
+const MIN_GLYPHS = 3;
+const MAX_GLYPHS = 11;
+/** Positions tried per rune before giving up on it. */
+const PLACEMENT_ATTEMPTS = 50;
+/** Runes skipped in a row before we call the canvas full. */
+const MAX_CONSECUTIVE_FAILURES = 25;
+const RESIZE_DEBOUNCE_MS = 200;
+/** Ignore resizes smaller than this (mobile toolbars, soft keyboard). */
+const RESIZE_DEAD_ZONE_PX = 120;
 
 type RuneResult = {
     delay: number;
-    amount: number;
     x: number;
     y: number;
     runeWidth: number;
     selectedRunes: string[]; // Adjust this if selectedRunes is not an array of strings
-    failed: boolean;
 };
 
+type Rect = { left: number; top: number; right: number; bottom: number };
 
+function fontSpecOf(el: HTMLElement): string {
+    const cs = getComputedStyle(el);
+    return `${cs.fontStyle} ${cs.fontWeight} ${cs.fontSize} ${cs.fontFamily}`;
+}
+
+function measureRunes(fontSpec: string): Record<string, number> {
+    const ctx = document.createElement('canvas').getContext('2d');
+    if (!ctx) return Object.fromEntries(runes.map((r) => [r, 8]));
+    ctx.font = fontSpec;
+    return Object.fromEntries(runes.map((r) => [r, ctx.measureText(r).width]));
+}
+
+class BandIndex {
+    private readonly cells = new Map<number, Rect[]>();
+
+    constructor(private readonly bandHeight: number) {}
+
+    private firstBand(top: number): number {
+        return Math.floor(top / this.bandHeight);
+    }
+
+    private lastBand(bottom: number): number {
+        return Math.floor(bottom / this.bandHeight);
+    }
+
+    collides(r: Rect): boolean {
+        const last = this.lastBand(r.bottom);
+        for (let band = this.firstBand(r.top); band <= last; band++) {
+            const bucket = this.cells.get(band);
+            if (!bucket) continue;
+            for (const other of bucket) {
+                if (
+                    r.left < other.right &&
+                    r.right > other.left &&
+                    r.top < other.bottom &&
+                    r.bottom > other.top
+                ) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    insert(r: Rect): void {
+        const last = this.lastBand(r.bottom);
+        for (let band = this.firstBand(r.top); band <= last; band++) {
+            const bucket = this.cells.get(band);
+            if (bucket)
+                bucket.push(r);
+            else
+                this.cells.set(band, [r]);
+        }
+    }
+}
+
+function generateBackground(
+    vw: number,
+    vh: number,
+    widths: Record<string, number>,
+    runeHeight: number,
+): RuneResult[] {
+    const index = new BandIndex(Math.max(runeHeight, 1));
+    const target = Math.min(MAX_RUNES, Math.round((vw * vh) / AREA_PER_RUNE));
+    const placed: RuneResult[] = [];
+    let consecutiveFailures = 0;
+
+    while (placed.length < target && consecutiveFailures < MAX_CONSECUTIVE_FAILURES) {
+        const glyphCount = MIN_GLYPHS + Math.floor(Math.random() * (MAX_GLYPHS - MIN_GLYPHS + 1));
+
+        const selectedRunes: string[] = [];
+        let runeWidth = 0;
+        for (let i = 0; i < glyphCount; i++) {
+            const glyph = runes[Math.floor(Math.random() * runes.length)];
+            selectedRunes.push(glyph);
+            runeWidth += widths[glyph] ?? 0;
+        }
+
+        // Draw straight from the valid range, so no attempt is wasted on a
+        // position that could never fit inside the viewport.
+        const maxLeft = vw - runeWidth - GAP;
+        const maxTop = vh - runeHeight - GAP;
+        if (maxLeft <= GAP || maxTop <= GAP) break;
+
+        let success = false;
+        for (let attempt = 0; attempt < PLACEMENT_ATTEMPTS; attempt++) {
+            const left = GAP + Math.random() * (maxLeft - GAP);
+            const top = GAP + Math.random() * (maxTop - GAP);
+
+            const rect: Rect = {
+                left: left - GAP,
+                top: top - GAP,
+                right: left + runeWidth + GAP,
+                bottom: top + runeHeight + GAP,
+            };
+
+            if (index.collides(rect)) continue;
+
+            index.insert(rect);
+            placed.push({
+                delay: Math.random() * 25,
+                x: (left / vw) * 100,
+                y: (top / vh) * 100,
+                runeWidth,
+                selectedRunes,
+            });
+            success = true;
+            break;
+        }
+
+        consecutiveFailures = success ? 0 : consecutiveFailures + 1;
+    }
+
+    return placed;
+}
 const RuneBackground = () => {
-    const backgroundRef = useRef(null);
+    const probeRef = useRef<HTMLDivElement>(null);
     const [runesData, setRunesData] = useState<RuneResult[]>([]);
 
-    const generateBackground = () => {
-        const vw: number = Math.max(document.documentElement.clientWidth || 0, window.innerWidth || 0);
-        const vh: number = Math.max(document.documentElement.clientHeight || 0, window.innerHeight || 0);
-
-        const localRunesData: RuneResult[] = [];
-
-        for (let i = 0; i < 200; i++) {
-            const runeData = generateRuneForBackground(localRunesData, vw, vh);
-            localRunesData.push(runeData);
-        }
-
-        return localRunesData.filter((runeData) => !runeData.failed);
-    };
-
     useEffect(() => {
-        const handleResize = () => {
-            const background = generateBackground();
-            if (background) {
-                setRunesData(background);
+        let cancelled = false;
+        let timer: number | undefined;
+        let lastViewport = { w: 0, h: 0 };
+        let widths: Record<string, number> | null = null;
+        let runeHeight = 0;
+
+        const regenerate = () => {
+            if (cancelled || !widths) return;
+
+            const vw = window.innerWidth;
+            const vh = window.innerHeight;
+
+            // Ignore the small height changes mobile browsers fire constantly.
+            if (
+                Math.abs(vw - lastViewport.w) < RESIZE_DEAD_ZONE_PX &&
+                Math.abs(vh - lastViewport.h) < RESIZE_DEAD_ZONE_PX
+            ) {
+                return;
             }
+
+            lastViewport = { w: vw, h: vh };
+            setRunesData(generateBackground(vw, vh, widths, runeHeight));
         };
 
-        requestAnimationFrame(() => {
-            handleResize();
-        });
+        const init = async () => {
+            // Measuring before webfonts land would capture fallback metrics.
+            if (document.fonts?.ready) await document.fonts.ready;
 
-        window.addEventListener('resize', handleResize);
-        return () => window.removeEventListener('resize', handleResize);
+            const probe = probeRef.current;
+            if (cancelled || !probe) return;
+
+            widths = measureRunes(fontSpecOf(probe));
+            runeHeight =
+                probe.getBoundingClientRect().height ||
+                parseFloat(getComputedStyle(probe).fontSize) * 1.4;
+
+            regenerate();
+        };
+
+        void init();
+
+        const onResize = () => {
+            window.clearTimeout(timer);
+            timer = window.setTimeout(regenerate, RESIZE_DEBOUNCE_MS);
+        };
+
+        window.addEventListener('resize', onResize);
+        return () => {
+            cancelled = true;
+            window.clearTimeout(timer);
+            window.removeEventListener('resize', onResize);
+        };
     }, []);
 
-    const generateRuneForBackground = (list: RuneResult[], vw: number, vh: number) => {
-        const delay = Math.random() * 25;
-        const amount = Math.floor(Math.random() * 9) + 3;
-        let x = Math.random() * 100;
-        let y = Math.random() * 95;
-        let runeWidth = 0;
-        const runeHeight = 24;
-
-        // Calculate total size
-        const selectedRunes: string[] = [];
-        for (let i = 0; i < amount; i++) {
-            const symbol = runes[Math.floor(Math.random() * runes.length)];
-            selectedRunes.push(symbol);
-            runeWidth += runesSizes[symbol];
-        }
-
-        let retryCounter = 50;
-
-        // Check for overlaps
-        while (retryCounter > 0) {
-            const currentLeft = (x * vw) / 100;
-            const currentTop = (y * vh) / 100;
-            const currentRight = currentLeft + runeWidth;
-            const currentBottom = currentTop + runeHeight;
-
-            // Check if current position overlaps with any existing rune
-            const hasOverlap = list.some(existingRune => {
-                const existingLeft = (existingRune.x * vw) / 100;
-                const existingTop = (existingRune.y * vh) / 100;
-                const existingRight = existingLeft + existingRune.runeWidth;
-                const existingBottom = existingTop + runeHeight;
-
-                // Check for rectangle overlap
-                return !(currentRight < existingLeft ||
-                    currentLeft > existingRight ||
-                    currentBottom < existingTop ||
-                    currentTop > existingBottom);
-            });
-
-            // Also check bounds
-            const withinBounds = (currentLeft >= 0 &&
-                currentRight <= vw &&
-                currentTop >= 0 &&
-                currentBottom <= vh);
-
-            if (!hasOverlap && withinBounds) {
-                break;
-            }
-
-            x = Math.random() * 100;
-            y = Math.random() * 95;
-            retryCounter--;
-        }
-
-        return {
-            delay,
-            amount,
-            x: retryCounter <= 0 ? 0 : x,
-            y: retryCounter <= 0 ? 0 : y,
-            runeWidth,
-            selectedRunes,
-            failed: retryCounter <= 0
-        };
-    };
-
     return (
-        <div id="background" ref={backgroundRef} className={styles.backgroundContainer}>
-            {(runesData ?? []).map((runeData, index) => (
+        <div id="background" className={styles.backgroundContainer}>
+            {/* Off-screen probe: carries the real .rune styling so the canvas
+                measures the same font the runes are drawn with. */}
+            <div
+                ref={probeRef}
+                className={styles.rune}
+                aria-hidden="true"
+                style={{
+                    position: 'absolute',
+                    top: -9999,
+                    left: -9999,
+                    visibility: 'hidden',
+                    animation: 'none',
+                    opacity: 0,
+                }}
+            >
+                ᚠ
+            </div>
+
+            {runesData.map((runeData, index) => (
                 <div
                     key={index}
                     className={styles.runesContainer}
@@ -148,7 +245,7 @@ const RuneBackground = () => {
                             className={styles.rune}
                             style={{
                                 animationDelay: `${runeData.delay + runeIndex * 0.5}s`,
-                                opacity: 0
+                                opacity: 0,
                             }}
                         >
                             {symbol}
