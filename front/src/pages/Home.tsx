@@ -1,5 +1,3 @@
-'use client'
-
 import {useState, useEffect, useRef, useCallback} from 'react';
 import RuneBackground from "../components/RuneBackground";
 
@@ -136,7 +134,7 @@ export default function Home() {
             clear_input();
         } else {
             const data = await res.json().catch(() => ({}));
-            alert(data.error || 'Quote submit failed');
+            alert(data.message || 'Quote submit failed');
         }
     }
 

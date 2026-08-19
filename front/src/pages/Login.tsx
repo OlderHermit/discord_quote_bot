@@ -25,12 +25,9 @@ export const Login = () => {
             });
 
             if (res.ok) {
-                const token: string = (await res.json())['token'];
-                const role = jwtDecode<JwtPayload>(token).role;
-                if (role === 'master')
-                    navigate('/approve');
-                if (role ==='user')
-                    navigate('/');
+                const { role } = await res.json();
+                navigate(role === 'master' ? '/approve' : '/');
+                return;
             }
 
             setError('Login failed');
@@ -40,19 +37,17 @@ export const Login = () => {
     };
 
     return (
-        <div className="flex h-screen justify-center items-center">
+        <div>
             <RuneBackground />
             <div
-                className="rounded-2xl shadow-xl p-8 bg-cover bg-center contentContainer"
                 style={{ backgroundPosition: "center center", paddingTop: "30px" }}
             >
-                <h2 className="text-black text-2xl mb-4 font-semibold">Login</h2>
+                <h2>Login</h2>
                 <input
                     type="password"
                     placeholder="Enter password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="border-black border-2 w-3/4 px-4 py-2 rounded mb-3 text-black"
                     onKeyDown={(e) => {
                         if (e.key === 'Enter') {
                             e.preventDefault();
@@ -60,10 +55,9 @@ export const Login = () => {
                         }
                     }}
                 />
-                {error && <p className="text-red-400 mb-2">{error}</p>}
+                {error && <p>{error}</p>}
                 <button
                     onClick={handleLogin}
-                    className="border-black border-2 blend text-black px-4 py-2 rounded w-1/3"
                 >
                     Log In
                 </button>

@@ -1,5 +1,3 @@
-'use client'
-
 import {useEffect, useState} from 'react';
 import styles from '../styles/Approve.module.css'
 import RuneBackground from '../components/RuneBackground.tsx';
@@ -35,11 +33,12 @@ export default function QuotesPage() {
                 });
 
                 if (!res.ok) {
-                    setError(res.statusText);
+                    const body = await res.json().catch(() => null);
+                    setError(body?.message || `Request failed (${res.status})`);
                     return;
                 }
-                const data: QuoteObject[] = await res.json();
-                setQuotes(data);
+
+                setQuotes(await res.json());
             } finally {
                 setLoading(false);   // runs after the request resolves, not before
             }
