@@ -112,7 +112,7 @@ def prepare_dialogue(quote: Quote, max_width: int, fonts: dict[str, FreeTypeFont
     return centered
 
 
-def _generate_image_for_quote(quote: Quote, save=True):
+def _generate_image_for_quote(quote: Quote):
     width = 600
     text_position = (50, 50)
     text_color = (255, 255, 255)
@@ -145,8 +145,6 @@ def _generate_image_for_quote(quote: Quote, save=True):
                 draw.text((x, y), char, fill=color, font=font, embedded_color=True)
             x += draw.textlength(char, font=font)
 
-    if save:
-        image.save("text_image.png")
     return image
 
 def render_quote_image(quote: Quote, path: Path = IMAGE_PATH) -> None:
