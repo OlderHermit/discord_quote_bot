@@ -48,7 +48,7 @@ class DBBridge():
     # config ===============================================
 
     def get_config(self) -> Config:
-        with Session(self.engine) as session:
+        with self.Session() as session:
             return session.get_one(Config, 0)
 
     def is_new_quote_time(self) -> bool:
@@ -57,7 +57,7 @@ class DBBridge():
         return now > last_used
 
     def update_config_last_used_quote(self, q_id: int) -> None:
-        with Session(self.engine) as session, session.begin():
+        with self.Session() as session, session.begin():
             session.execute(
                 update(Config)
                 .where(Config.id == 0)
@@ -67,7 +67,7 @@ class DBBridge():
     # quotes ===============================================
 
     def get_explanation(self) -> str | None:
-        with Session(self.engine) as session:
+        with self.Session() as session:
             quote_id = session.get_one(Config, 0).last_quote_id # keeping all in single session
             if quote_id is None:
                 return None
@@ -85,7 +85,7 @@ class DBBridge():
             .limit(1)
         )
 
-        with Session(self.engine) as session, session.begin():
+        with self.Session() as session, session.begin():
             quote = session.scalars(selection).first()
             if quote is not None:
                 return quote
@@ -97,7 +97,7 @@ class DBBridge():
             return result
 
     def get_specific_quote_with_joins(self, q_id) -> Quote:
-        with Session(self.engine) as session:
+        with self.Session()  as session:
             return session.scalar(
                 select(Quote)
                 .options(selectinload(Quote.sentences)
@@ -113,23 +113,25 @@ class DBBridge():
         )
 
     def mark_quote_as_used(self, q_id):
-        with Session(self.engine) as session, session.begin():
+        with self.Session() as session, session.begin():
             session.execute(
                 update(Quote).where(Quote.id == q_id).values(used=True)
             )
 
     def get_authors(self) -> Sequence[Author]:
-        with Session(self.engine) as session:
+        with self.Session() as session:
             return session.scalars(select(Author)).all()
 
     def get_candidate_quotes(self) -> Sequence[Quote]:
-        with Session(self.engine) as session:
+        with self.Session() as session:
             return session.scalars(
-                select(Quote).where(Quote.deleted.is_(False), Quote.confirmed.is_(False))
+                select(Quote)
+                .options(selectinload(Quote.sentences).joinedload(Sentence.author).joinedload(Author.color))
+                .where(Quote.deleted.is_(False), Quote.confirmed.is_(False))
             ).all()
 
     def approve_quote(self, q_id: int) -> None:
-        with Session(self.engine) as session, session.begin():
+        with self.Session() as session, session.begin():
             session.execute(
                 update(Quote)
                 .where(Quote.id == q_id, Quote.deleted.is_(False), Quote.confirmed.is_(False))
@@ -137,7 +139,7 @@ class DBBridge():
             )
 
     def delete_quote(self, q_id: int) -> None:
-        with Session(self.engine) as session, session.begin():
+        with self.Session() as session, session.begin():
             session.execute(
                 update(Quote)
                 .where(Quote.id == q_id, Quote.deleted.is_(False), Quote.confirmed.is_(False))
