@@ -23,13 +23,8 @@ export const ProtectedRoute = ({children, requiredRole}: { children: JSX.Element
                 setAuthorized(res.ok);
 
                 if (res.ok) {
-                    const token: string = (await res.json())['token'];
-                    if (token) {
-                        const decoded = jwtDecode<JwtPayload>(token);
-                        setRole(decoded.role || null);
-                    } else {
-                        setRole(null);
-                    }
+                    const { role } = await res.json();
+                    setRole(role ?? null);
                 }
             } catch {
                 setAuthorized(false);
@@ -42,11 +37,9 @@ export const ProtectedRoute = ({children, requiredRole}: { children: JSX.Element
     }, [])
 
     if (loading) return <div>Loading...</div>
-    console.log(requiredRole)
-    console.log(role)
 
-    if (!authorized || (requiredRole !== undefined && requiredRole !== role))
-        return <Navigate to="/login"/>
+    if (!authorized) return <Navigate to="/login" replace />
+    if (requiredRole !== undefined && requiredRole !== role) return <Navigate to="/" replace />
 
     return children
 }
