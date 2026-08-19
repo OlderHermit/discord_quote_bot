@@ -1,47 +1,65 @@
 import asyncio
+import logging
 import os
-from pathlib import Path
 
 import discord
+from aiohttp.web_runner import AppRunner
 from discord.ext import commands
 from dotenv import load_dotenv
 
-import globals
-from quote_to_image import generate_image
+import context
 from db_bridge import DBBridge
+from quote_to_image import render_quote_image, generate_daily_image, IMAGE_PATH
 from web import start_server
 
-intents = discord.Intents.default()
-intents.message_content = True
-bot = commands.Bot(command_prefix=';', intents=discord.Intents.all())
+log = logging.getLogger(__name__)
+
+
+class QuoteBot(commands.Bot):
+    def __init__(self) -> None:
+        intents = discord.Intents.default()
+        intents.message_content = True
+        super().__init__(command_prefix=';', intents=intents)
+        self.runner: AppRunner | None = None
+
+    async def setup_hook(self) -> None:
+        self.runner = await start_server()
+        synced = await self.tree.sync()
+        log.info(f"synced {len(synced)} commands")
+
+    async def close(self) -> None:
+        if self.runner is not None:
+            await self.runner.cleanup()
+        await super().close()
+
+
+bot = QuoteBot()
 
 
 @bot.event
-async def on_ready():
-    try:
-        c = await bot.tree.sync()
-        print(f'Synced {len(c)} commands')
-    except Exception as e:
-        print(f'got {e}')
-    # ticker.start()
-    await bot.loop.create_task(start_server())
-
-    print(f'We have logged in as {bot.user.name}')
+async def on_ready() -> None:
+    log.info("logged in as %s", bot.user)
 
 
 @bot.tree.command(name='quote', description='Najlepsze kwestie jakie na przestrzeni lat padły na niniejszym serwerze')
-async def quote(interactions):
-    if globals.db.is_new_quote_time():
-        q_id = await asyncio.to_thread(generate_image)
-        globals.db.update_config_last_used_quote(q_id)
+async def quote(interaction: discord.Interaction) -> None:
+    await interaction.response.defer()
+    if context.db.is_new_quote_time():
+        q_id = await asyncio.to_thread(generate_daily_image)
+        context.db.update_config_last_used_quote(q_id)
 
-    if not (Path.cwd() / "text_image.png").exists():
-        globals.db.get_specific_quote_with_joins(globals.db.get_config().last_quote_id)
-        await asyncio.to_thread(generate_image)
+    elif not IMAGE_PATH.exists():
+        last = context.db.get_specific_quote_with_joins(context.db.get_config().last_quote_id)
+        if last is None:
+            q_id = await asyncio.to_thread(generate_daily_image)
+            context.db.update_config_last_used_quote(q_id)
+        else:
+            await asyncio.to_thread(render_quote_image, last)
 
-    await interactions.response.send_message(
-        file=discord.File('text_image.png', 'Mądrość dnia.png')
+    await interaction.followup.send(
+        file=discord.File(IMAGE_PATH, 'Mądrość dnia.png')
     )
+
 
 
 
@@ -61,11 +79,24 @@ async def submit(interactions):
         delete_after=60
     )
 
-if __name__ == '__main__':
+
+def main() -> None:
     load_dotenv()
+    logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
+
+    missing = [k for k in ("SECRET_KEY", "USER_PASS", "MASTER_PASS", "LOCAL_ADDRESS", "LOCAL_PORT", "SITE_URL")
+               if not os.getenv(k)]
+    if missing:
+        raise SystemExit(f"missing env vars: {', '.join(missing)}")
+
     try:
-       globals.db = DBBridge()
-    except Exception as e:
-        print(f"failed to start DB {e}")
-        exit()
-    bot.run(globals.db.get_config().bot_token)
+        context.db = DBBridge(os.getenv("DB_PATH", "quotes.db"))
+    except Exception:
+        logging.exception("failed to start DB")
+        raise SystemExit(1)
+
+    bot.run(context.db.get_config().bot_token)
+
+
+if __name__ == '__main__':
+    main()
