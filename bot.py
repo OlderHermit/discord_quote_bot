@@ -1,11 +1,13 @@
+import asyncio
 import os
+from pathlib import Path
 
 import discord
 from discord.ext import commands
 from dotenv import load_dotenv
 
 import globals
-import quote_to_image
+from quote_to_image import generate_image
 from db_bridge import DBBridge
 from web import start_server
 
@@ -30,8 +32,12 @@ async def on_ready():
 @bot.tree.command(name='quote', description='Najlepsze kwestie jakie na przestrzeni lat padły na niniejszym serwerze')
 async def quote(interactions):
     if globals.db.is_new_quote_time():
-        q_id = await quote_to_image.generate_image()
+        q_id = await asyncio.to_thread(generate_image)
         globals.db.update_config_last_used_quote(q_id)
+
+    if not (Path.cwd() / "text_image.png").exists():
+        globals.db.get_specific_quote_with_joins(globals.db.get_config().last_quote_id)
+        await asyncio.to_thread(generate_image)
 
     await interactions.response.send_message(
         file=discord.File('text_image.png', 'Mądrość dnia.png')
@@ -42,7 +48,7 @@ async def quote(interactions):
 @bot.tree.command(name='explain', description='Dodatkowe informacje \"lore\" ostatniej wypowiedzi')
 async def explain(interactions):
     res = globals.db.get_explanation()
-    interactions.response.send_message(
+    await interactions.response.send_message(
         res if res else "No quote response to send",
         ephemeral=True
     )
@@ -50,7 +56,7 @@ async def explain(interactions):
 
 @bot.tree.command(name='submit', description='Możliwość dodania własnego cytatu')
 async def submit(interactions):
-    interactions.response.send_message(
+    await interactions.response.send_message(
         f'Password: "{os.getenv('USER_PASS')}"\nFunctionality moved to here https://{os.getenv("SITE_URL")}', ephemeral=True,
         delete_after=60
     )

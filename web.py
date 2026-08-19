@@ -45,13 +45,13 @@ async def start_server():
     print("website is on")
 
 
-async def return_authors_data(_):
-    authors = list(map(lambda a: a.id, globals.db.get_authors()))
+def return_authors_data(_):
+    authors = [a.id for a in  globals.db.get_authors()]
     return web.json_response(authors)
 
-async def submit_through_web(request):
+def submit_through_web(request):
     try:
-        data = await request.json()
+        data = request.json()
         quote_date = data["date"]
         explanation = data["explanation"]
         sentences = [
@@ -69,7 +69,7 @@ async def submit_through_web(request):
         )
 
     try:
-        quote_id = await asyncio.to_thread(
+        quote_id = asyncio.to_thread(
             globals.db.add_submission, quote_date, explanation, sentences
         )
     except IntegrityError:
@@ -85,9 +85,9 @@ async def submit_through_web(request):
     return web.json_response({"status": "success", "id": quote_id})
 
 
-async def approve_through_web(request):
+def approve_through_web(request):
     try:
-        quote_id = (await request.json())['id']
+        quote_id = request.json()['id']
         globals.db.approve_quote(quote_id)
         return web.json_response({'status': 'success', 'message': 'Quote approved'})
     except Exception as e:
@@ -95,9 +95,9 @@ async def approve_through_web(request):
         return web.json_response({'status': 'error', 'message': 'Internal error'}, status=500)
 
 
-async def delete_through_web(request):
+def delete_through_web(request):
     try:
-        quote_id = (await request.json())['id']
+        quote_id = request.json()['id']
         globals.db.delete_quote(quote_id)
         return web.json_response({'status': 'success', 'message': 'Quote discarded'})
     except Exception as e:
@@ -105,16 +105,19 @@ async def delete_through_web(request):
         return web.json_response({'status': 'error', 'message': 'Internal error'}, status=500)
 
 
-async def return_nominations_data(_):
+def return_nominations_data(_):
     return web.json_response(
         [q[0].as_dict() for q in globals.db.get_candidate_quotes()]
     )
 
 
-async def login(request):
+def login(request):
     try:
-        data = await request.json()
+        data = request.json()
         password = data.get("password")
+
+        if not isinstance(password, str) or len(password) <= 0:
+            web.json_response({"error": "password invalid format" }, status=400)
 
         if secrets.compare_digest(password, os.getenv('MASTER_PASS') or ''):
             role = "master"
@@ -128,11 +131,10 @@ async def login(request):
             "exp": datetime.datetime.now(datetime.UTC) + datetime.timedelta(hours=1)
         }, os.getenv('SECRET_KEY'), algorithm="HS256")
 
-        resp = web.json_response({'message': 'Login successful', 'token': token}, status=200)
+        resp = web.json_response({'message': 'Login successful'}, status=200)
         resp.set_cookie(
             'token',
             token,
-            httponly=True,
             secure=True,
             samesite='Strict',
             max_age=3600
@@ -142,14 +144,14 @@ async def login(request):
         return web.json_response({"error": str(e)}, status=400)
 
 
-async def check_token(request):
+def check_token(request):
     return web.json_response({'message': 'Token valid', 'token': request.cookies.get('token')}, status=200)
 
 
 @web.middleware
-async def auth_middleware(request, handler):
+def auth_middleware(request, handler):
     if request.path == "/login" or request.method == "OPTIONS":
-        return await handler(request)
+        return handler(request)
 
     token = request.cookies.get('token')
     if not token:
@@ -170,4 +172,4 @@ async def auth_middleware(request, handler):
     if request.path == "/quotes/approve" and payload.get("role") != "master":
         return web.json_response({'message': 'You do not have permission to access this resource'}, status=403)
 
-    return await handler(request)
+    return handler(request)
