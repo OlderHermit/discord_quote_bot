@@ -14,7 +14,7 @@ export const ProtectedRoute = ({children, requiredRole}: { children: JSX.Element
     useEffect(() => {
         const checkAuth = async () => {
             try {
-                const res = await fetch('api/login/check', {
+                const res = await fetch('/api/login/check', {
                     method: 'GET',
                     headers: { "Content-Type": "application/json" },
                     credentials: 'include',

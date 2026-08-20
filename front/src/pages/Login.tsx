@@ -1,8 +1,6 @@
 import {useEffect, useState} from "react";
 import { useNavigate } from 'react-router-dom';
 import RuneBackground from '../components/RuneBackground';
-import {jwtDecode} from "jwt-decode";
-import type {JwtPayload} from "../components/ProtectedRoute.tsx";
 
 export const Login = () => {
     const [password, setPassword] = useState('');
@@ -40,7 +38,7 @@ export const Login = () => {
         <div>
             <RuneBackground />
             <div
-                style={{ backgroundPosition: "center center", paddingTop: "30px" }}
+                className="contentContainer" style={{ paddingTop: "30px" }}
             >
                 <h2>Login</h2>
                 <input
