@@ -65,7 +65,7 @@ async def quote(interaction: discord.Interaction) -> None:
 
 @bot.tree.command(name='explain', description='Dodatkowe informacje \"lore\" ostatniej wypowiedzi')
 async def explain(interactions):
-    res = globals.db.get_explanation()
+    res = context.db.get_explanation()
     await interactions.response.send_message(
         res if res else "No quote response to send",
         ephemeral=True
@@ -95,7 +95,7 @@ def main() -> None:
         logging.exception("failed to start DB")
         raise SystemExit(1)
 
-    bot.run(context.db.get_config().bot_token)
+    bot.run(context.db.get_config().bot_token, log_handler=None)
 
 
 if __name__ == '__main__':
