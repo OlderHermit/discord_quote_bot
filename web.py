@@ -88,7 +88,7 @@ async def submit_through_web(request):
 async def approve_through_web(request):
     try:
         quote_id = (await request.json())['id']
-        context.db.approve_quote(quote_id)
+        await asyncio.to_thread(context.db.approve_quote, quote_id)
         return web.json_response({'status': 'success', 'message': 'Quote approved'})
     except Exception as e:
         print(f"Submit error: {e}")  # albo logger
@@ -98,7 +98,7 @@ async def approve_through_web(request):
 async def delete_through_web(request):
     try:
         quote_id = (await request.json())['id']
-        context.db.delete_quote(quote_id)
+        await asyncio.to_thread(context.db.delete_quote, quote_id)
         return web.json_response({'status': 'success', 'message': 'Quote discarded'})
     except Exception as e:
         print(f"Submit error: {e}")  # albo logger
@@ -107,7 +107,7 @@ async def delete_through_web(request):
 
 async def return_nominations_data(_):
     return web.json_response(
-        [q.as_dict() for q in context.db.get_candidate_quotes()]
+        [q.as_dict() for q in await asyncio.to_thread(context.db.get_candidate_quotes)]
     )
 
 
@@ -119,9 +119,9 @@ async def login(request):
         if not isinstance(password, str) or len(password) <= 0:
             return web.json_response({"error": "password invalid format" }, status=400)
 
-        if secrets.compare_digest(password, os.getenv('MASTER_PASS') or ''):
+        if secrets.compare_digest(password, os.getenv('MASTER_PASS')):
             role = "master"
-        elif secrets.compare_digest(password,os.getenv('USER_PASS') or ''):
+        elif secrets.compare_digest(password, os.getenv('USER_PASS')):
             role = "user"
         else:
             return web.json_response({"error": "Invalid password"}, status=401)
