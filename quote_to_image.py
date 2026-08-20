@@ -8,6 +8,8 @@ import context
 from orm import Quote
 
 IMAGE_PATH = Path(__file__).parent / "text_image.png"
+ASSETS = Path(__file__).parent / "assets"
+
 default_font_color = (255, 255, 255)
 default_background_color = (0x27, 0x29, 0x2E)
 
@@ -118,8 +120,8 @@ def _generate_image_for_quote(quote: Quote):
     text_color = (255, 255, 255)
 
     fonts = {
-        "base": ImageFont.truetype("assets/Jaini-Regular.ttf", 36),
-        "icon": ImageFont.truetype("assets/SEGUIEMJ.ttf", 36),
+        "base": ImageFont.truetype(ASSETS / "Jaini-Regular.ttf", 36),
+        "icon": ImageFont.truetype(ASSETS / "SEGUIEMJ.ttf", 36),
     }
 
     centered = prepare_dialogue(quote, width - text_position[0] * 2, fonts)
