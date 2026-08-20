@@ -26,7 +26,7 @@ export default function QuotesPage() {
     useEffect(() => {
         async function fetchQuotes() {
             try {
-                const res = await fetch('api/quotes/nominations', {
+                const res = await fetch('/api/quotes/nominations', {
                     method: 'GET',
                     headers: {'Content-Type': 'application/json'},
                     credentials: 'include'
@@ -39,6 +39,8 @@ export default function QuotesPage() {
                 }
 
                 setQuotes(await res.json());
+            } catch {
+                setError('Network error');
             } finally {
                 setLoading(false);   // runs after the request resolves, not before
             }
@@ -60,7 +62,7 @@ export default function QuotesPage() {
         });
 
         if (!res.ok) {
-            alert('couldn\'t approve quote: ' + (await res.json())['message'])
+            alert('couldn\'t approve quote: ' + (await res.json())['message'] || 'No message provided')
             return
         }
 
@@ -76,7 +78,7 @@ export default function QuotesPage() {
         });
 
         if (!res.ok) {
-            alert('couldn\'t delete quote: ' + (await res.json())['message'])
+            alert('couldn\'t delete quote: ' + (await res.json())['message'] || 'No message provided')
             return
         }
 
@@ -88,11 +90,11 @@ export default function QuotesPage() {
     if (!quotes || quotes.length === 0) return <p>No quotes found.</p>;
 
     return (
-        <div className='flex h-screen justify-center items-center'>
+        <div>
             <RuneBackground/>
             <div>
                 {quotes.map((q) => (
-                    <div key={q.id} className={`rounded-2xl shadow-xl bg-cover bg-center ${styles.column_approve}`}>
+                    <div key={q.id} className={`${styles.column_approve}`}>
                         <div className={styles.lines}>
                             {q.sentences.map((sentence, i) => (
                                 <p key={i} className={styles.text_approve}>
