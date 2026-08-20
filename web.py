@@ -119,9 +119,9 @@ async def login(request):
         if not isinstance(password, str) or len(password) <= 0:
             return web.json_response({"error": "password invalid format" }, status=400)
 
-        if secrets.compare_digest(password, os.getenv('MASTER_PASS')):
+        if secrets.compare_digest(password.encode(), os.getenv('MASTER_PASS').encode()):
             role = "master"
-        elif secrets.compare_digest(password, os.getenv('USER_PASS')):
+        elif secrets.compare_digest(password.encode(), os.getenv('USER_PASS').encode()):
             role = "user"
         else:
             return web.json_response({"error": "Invalid password"}, status=401)
@@ -152,7 +152,7 @@ async def check_token(request):
 @web.middleware
 async def auth_middleware(request, handler):
     if request.path == "/login" or request.method == "OPTIONS":
-        return handler(request)
+        return await handler(request)
 
     token = request.cookies.get('token')
     if not token:
@@ -174,4 +174,4 @@ async def auth_middleware(request, handler):
     if request.path == "/quotes/approve" and payload.get("role") != "master":
         return web.json_response({'message': 'You do not have permission to access this resource'}, status=403)
 
-    return handler(request)
+    return await handler(request)
