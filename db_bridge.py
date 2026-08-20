@@ -103,7 +103,7 @@ class DBBridge():
                 .options(selectinload(Quote.sentences)
                          .joinedload(Sentence.author)
                          .joinedload(Author.color))
-                .where(Quote.id == q_id, Quote.used.is_(False), Quote.deleted.is_(False), Quote.confirmed.is_(True))
+                .where(Quote.id == q_id, Quote.deleted.is_(False), Quote.confirmed.is_(True))
             )
 
     @staticmethod
