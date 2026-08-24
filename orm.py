@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import List
 
 from sqlalchemy import ForeignKey, String, Table, Column, CheckConstraint, TypeDecorator, Integer, select
@@ -11,6 +11,7 @@ class Base(DeclarativeBase):
 
 class Timestamp(TypeDecorator):
     impl = Integer
+    cache_ok = True
 
     def process_bind_param(self, value, dialect):
         if isinstance(value, datetime):
@@ -19,16 +20,16 @@ class Timestamp(TypeDecorator):
 
     def process_result_value(self, value, dialect):
         if value is not None:
-            return datetime.fromtimestamp(value)
+            return datetime.fromtimestamp(value, tz=timezone.utc)
         return value
 
 
 class Sentence(Base):
     __tablename__ = 'sentence'
 
-    number: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-    author_id: Mapped[str] = mapped_column(ForeignKey('author.id'), primary_key=True)
+    number: Mapped[int] = mapped_column(primary_key=True)
     quote_id: Mapped[int] = mapped_column(ForeignKey('quote.id'), primary_key=True)
+    author_id: Mapped[str] = mapped_column(ForeignKey('author.id'))
     sentence: Mapped[str] = mapped_column(String(200))
 
     quote: Mapped['Quote'] = relationship(back_populates='sentences')
@@ -44,7 +45,7 @@ class Sentence(Base):
 class Author(Base):
     __tablename__ = 'author'
 
-    id: Mapped[str] = mapped_column(primary_key=True, autoincrement=True)
+    id: Mapped[str] = mapped_column(primary_key=True)
     signature: Mapped[str] = mapped_column(String(30))
     color: Mapped['Color'] = relationship()
 
@@ -87,16 +88,18 @@ class Quote(Base):
 class Color(Base):
     __tablename__ = 'color'
 
+    __table_args__ = (
+        CheckConstraint('red >= 0 AND red <= 255', name='check_red_value'),
+        CheckConstraint('green >= 0 AND green <= 255', name='check_green_value'),
+        CheckConstraint('blue >= 0 AND blue <= 255', name='check_blue_value')
+    )
+
     id: Mapped[int] = mapped_column(primary_key=True)
     red: Mapped[int] = mapped_column(default=255)
     green: Mapped[int] = mapped_column(default=255)
     blue: Mapped[int] = mapped_column(default=255)
 
     author_id: Mapped[str] = mapped_column(ForeignKey('author.id'), nullable=True)
-
-    CheckConstraint('red >= 0 AND red <= 255', name='check_red_value')
-    CheckConstraint('green >= 0 AND green <= 255', name='check_green_value')
-    CheckConstraint('blue >= 0 AND blue <= 255', name='check_blue_value')
 
     def __repr__(self) -> str:
         return f'Color(id={self.id}, red={self.red}, green={self.green}, blue={self.blue}, author={self.author_id}'
@@ -112,7 +115,7 @@ class Config(Base):
     max_login_attempts: Mapped[int]
     login_failed_timeout: Mapped[int]  # in seconds
     login_session_time: Mapped[int]  # in seconds
-    last_used: Mapped[datetime] = mapped_column(Timestamp, default=datetime.fromtimestamp(0))
+    last_used: Mapped[datetime] = mapped_column(Timestamp, default=datetime.fromtimestamp(0, tz=timezone.utc))
     last_quote_id: Mapped[int] = mapped_column(ForeignKey('quote.id'), nullable=True)
 
     def __repr__(self) -> str:
