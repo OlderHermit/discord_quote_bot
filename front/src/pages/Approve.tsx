@@ -34,7 +34,7 @@ export default function QuotesPage() {
 
                 if (!res.ok) {
                     const body = await res.json().catch(() => null);
-                    setError(body?.message || `Request failed (${res.status})`);
+                    alert(`Couldn't delete quote: ${body?.message ?? 'no message provided'}`);
                     return;
                 }
 
@@ -62,7 +62,8 @@ export default function QuotesPage() {
         });
 
         if (!res.ok) {
-            alert('couldn\'t approve quote: ' + (await res.json())['message'] || 'No message provided')
+            const body = await res.json().catch(() => null);
+            alert(`Couldn't approve quote: ${body?.message ?? 'no message provided'}`);
             return
         }
 
