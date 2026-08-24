@@ -32,7 +32,6 @@ class QuoteBot(commands.Bot):
             await self.runner.cleanup()
         await super().close()
 
-
 bot = QuoteBot()
 
 
@@ -44,17 +43,25 @@ async def on_ready() -> None:
 @bot.tree.command(name='quote', description='Najlepsze kwestie jakie na przestrzeni lat padły na niniejszym serwerze')
 async def quote(interaction: discord.Interaction) -> None:
     await interaction.response.defer()
-    if context.db.is_new_quote_time():
-        q_id = await asyncio.to_thread(generate_daily_image)
-        context.db.update_config_last_used_quote(q_id)
 
-    elif not IMAGE_PATH.exists():
-        last = context.db.get_specific_quote_with_joins(context.db.get_config().last_quote_id)
-        if last is None:
-            q_id = await asyncio.to_thread(generate_daily_image)
-            context.db.update_config_last_used_quote(q_id)
-        else:
-            await asyncio.to_thread(render_quote_image, last)
+    try:
+        await asyncio.wait_for(
+            asyncio.to_thread(_prepare_quote_image),
+            timeout=30,
+        )
+    except asyncio.TimeoutError:
+        await interaction.followup.send(
+            '⏳ The image generation timed out in theory impossible???'
+        )
+        return
+    except Exception:
+        log.exception('quote command failed')
+        await interaction.followup.send('❌ The bot have failed to generate image aka I broke something AGAIN.')
+        return
+
+    if not IMAGE_PATH.exists():
+        await interaction.followup.send('❌ The bot have failed to save image aka I broke something AGAIN.')
+        return
 
     await interaction.followup.send(
         file=discord.File(IMAGE_PATH, 'Mądrość dnia.png')
@@ -78,6 +85,21 @@ async def submit(interactions):
         f'Password: "{os.getenv('USER_PASS')}"\nFunctionality moved to here https://{os.getenv("SITE_URL")}', ephemeral=True,
         delete_after=60
     )
+
+def _prepare_quote_image() -> None:
+    if context.db.is_new_quote_time():
+        q_id = generate_daily_image()
+        context.db.update_config_last_used_quote(q_id)
+
+    elif not IMAGE_PATH.exists():
+        last = context.db.get_specific_quote_with_joins(
+            context.db.get_config().last_quote_id
+        )
+        if last is None:
+            q_id = generate_daily_image()
+            context.db.update_config_last_used_quote(q_id)
+        else:
+            render_quote_image(last)
 
 
 def main() -> None:
