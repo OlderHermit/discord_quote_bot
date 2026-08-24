@@ -1,10 +1,5 @@
 import {type JSX, useEffect, useState} from 'react'
 import {Navigate} from 'react-router-dom'
-import {jwtDecode} from 'jwt-decode';
-
-export interface JwtPayload {
-    role?: string;
-}
 
 export const ProtectedRoute = ({children, requiredRole}: { children: JSX.Element, requiredRole?: string }) => {
     const [loading, setLoading] = useState<boolean>(true)
