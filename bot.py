@@ -1,16 +1,19 @@
 import asyncio
+import hashlib
 import logging
 import os
+import urllib
 
-import discord
-from aiohttp.web_runner import AppRunner
-from discord.ext import commands
-from dotenv import load_dotenv
 
 import context
+import discord
+from aiohttp.web_runner import AppRunner
 from db_bridge import DBBridge
-from quote_to_image import render_quote_image, generate_daily_image, IMAGE_PATH
+from discord.ext import commands
+from dotenv import load_dotenv
+from quote_to_image import render_quote_image, generate_daily_image, IMAGE_PATH, ASSETS, FONTS
 from web import start_server
+from fontTools.ttLib import TTFont
 
 log = logging.getLogger(__name__)
 
@@ -101,6 +104,26 @@ def _prepare_quote_image() -> None:
         else:
             render_quote_image(last)
 
+def ensure_fonts() -> None:
+    ASSETS.mkdir(parents=True, exist_ok=True)
+    for name, _, url, sha in FONTS.values():
+        dst = ASSETS / name
+        if dst.exists() and hashlib.sha256(dst.read_bytes()).hexdigest() == sha:
+            continue
+        logging.info("fetching %s", name)
+        with urllib.request.urlopen(url, timeout=30) as r:
+            data = r.read()
+        got = hashlib.sha256(data).hexdigest()
+        if got != sha:
+            raise SystemExit(f"{name}: expected {sha}, got {got}")
+        tmp = dst.with_suffix(".tmp")
+        tmp.write_bytes(data)
+        tmp.replace(dst)
+
+    tables = set(TTFont(ASSETS / FONTS["icon"][0]).keys())
+    if "CBDT" not in tables:
+        raise SystemExit(f"emoji font is not CBDT (found {tables & {'COLR', 'SVG '}}) — Pillow cannot render it")
+
 
 def main() -> None:
     load_dotenv()
@@ -110,6 +133,8 @@ def main() -> None:
                if not os.getenv(k)]
     if missing:
         raise SystemExit(f"missing env vars: {', '.join(missing)}")
+
+    ensure_fonts()
 
     try:
         context.db = DBBridge(os.getenv("DB_PATH", "quotes.db"))

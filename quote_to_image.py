@@ -1,3 +1,4 @@
+import functools
 import math
 from pathlib import Path
 
@@ -9,6 +10,16 @@ from orm import Quote
 
 IMAGE_PATH = Path(__file__).parent / "text_image.png"
 ASSETS = Path(__file__).parent / "assets"
+FONTS = {
+    "base": ["Jaini-Regular.ttf", 36,
+        'https://github.com/EkType/Jaini/raw/refs/heads/master/fonts/ttf/Jaini-Regular.ttf',
+        '67224e60cafa27291c4b03cd907ca61ec678ba59fc1743af89da4472ea50d5c7'
+    ],
+    "icon": ["NotoColorEmoji.ttf", 109,
+        'https://github.com/googlefonts/noto-emoji/raw/main/fonts/NotoColorEmoji.ttf',
+        '72a635cb3d2f3524c51620cdde406b217204e8a6a06c6a096ff8ed4b5fd6e27b'
+    ],
+}
 
 default_font_color = (255, 255, 255)
 default_background_color = (0x27, 0x29, 0x2E)
@@ -103,15 +114,21 @@ def generate_separator(longest_size: int, check_font: FreeTypeFont):
     return '-' * seps
 
 
-def prepare_dialogue(quote: Quote, max_width: int, fonts: dict[str, FreeTypeFont]):
-    centered = split_to_size(quote, max_width, fonts['base'])
+def prepare_dialogue(quote: Quote, max_width: int):
+    centered = split_to_size(quote, max_width, _font['base'])
 
     centered.extend(
-        (center(a.signature, max_width, fonts['base'], fonts['icon']), a.get_tuple_color())
+        (center(a.signature, max_width, _font['base'], _font['icon']), a.get_tuple_color())
         for a in quote.get_authors()
     )
 
     return centered
+
+
+@functools.lru_cache(maxsize=None)
+def _font(tag: str) -> ImageFont.FreeTypeFont:
+    name, size, _, _ = FONTS[tag]
+    return ImageFont.truetype(str(ASSETS / name), size)
 
 
 def _generate_image_for_quote(quote: Quote):
@@ -119,12 +136,7 @@ def _generate_image_for_quote(quote: Quote):
     text_position = (50, 50)
     text_color = (255, 255, 255)
 
-    fonts = {
-        "base": ImageFont.truetype(ASSETS / "Jaini-Regular.ttf", 36),
-        "icon": ImageFont.truetype(ASSETS / "SEGUIEMJ.ttf", 36),
-    }
-
-    centered = prepare_dialogue(quote, width - text_position[0] * 2, fonts)
+    centered = prepare_dialogue(quote, width - text_position[0] * 2)
 
     image = Image.new("RGB", (width, 100 + 50 * len(centered)), default_background_color)
     draw = ImageDraw.Draw(image)
@@ -137,11 +149,11 @@ def _generate_image_for_quote(quote: Quote):
             y -= 10
 
         for i, char in enumerate(line):
-            font = fonts['icon'] if ord(char) > 512 else fonts['base']
+            font = _font['icon'] if ord(char) > 512 else _font['base']
             if char == ':':
                 color = default_font_color
 
-            if font == fonts['icon']:
+            if font == _font['icon']:
                 draw.text((x, y + 10), char, fill=text_color, font=font, embedded_color=True)
             else:
                 draw.text((x, y), char, fill=color, font=font, embedded_color=True)
