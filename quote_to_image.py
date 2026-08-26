@@ -9,6 +9,16 @@ from orm import Quote
 
 IMAGE_PATH = Path(__file__).parent / "text_image.png"
 ASSETS = Path(__file__).parent / "assets"
+FONT_PATHS = {
+    "base": ["Jaini-Regular.ttf",
+        'https://github.com/EkType/Jaini/raw/refs/heads/master/fonts/ttf/Jaini-Regular.ttf',
+        '67224e60cafa27291c4b03cd907ca61ec678ba59fc1743af89da4472ea50d5c7'
+    ],
+    "icon": ["NotoColorEmoji.ttf",
+        'https://github.com/googlefonts/noto-emoji/raw/main/fonts/NotoColorEmoji.ttf',
+        '72a635cb3d2f3524c51620cdde406b217204e8a6a06c6a096ff8ed4b5fd6e27b'
+    ],
+}
 
 default_font_color = (255, 255, 255)
 default_background_color = (0x27, 0x29, 0x2E)
@@ -119,10 +129,7 @@ def _generate_image_for_quote(quote: Quote):
     text_position = (50, 50)
     text_color = (255, 255, 255)
 
-    fonts = {
-        "base": ImageFont.truetype(ASSETS / "Jaini-Regular.ttf", 36),
-        "icon": ImageFont.truetype(ASSETS / "SEGUIEMJ.ttf", 36),
-    }
+    fonts = {tag: ImageFont.truetype(ASSETS / name, 36) for tag, (name, _, _) in FONT_PATHS.items()}
 
     centered = prepare_dialogue(quote, width - text_position[0] * 2, fonts)
 
