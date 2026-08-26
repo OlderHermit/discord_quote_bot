@@ -115,10 +115,10 @@ def generate_separator(longest_size: int, check_font: FreeTypeFont):
 
 
 def prepare_dialogue(quote: Quote, max_width: int):
-    centered = split_to_size(quote, max_width, _font['base'])
+    centered = split_to_size(quote, max_width, _font('base'))
 
     centered.extend(
-        (center(a.signature, max_width, _font['base'], _font['icon']), a.get_tuple_color())
+        (center(a.signature, max_width, _font('base'), _font('icon')), a.get_tuple_color())
         for a in quote.get_authors()
     )
 
@@ -149,11 +149,11 @@ def _generate_image_for_quote(quote: Quote):
             y -= 10
 
         for i, char in enumerate(line):
-            font = _font['icon'] if ord(char) > 512 else _font['base']
+            font = _font('icon') if ord(char) > 512 else _font('base')
             if char == ':':
                 color = default_font_color
 
-            if font == _font['icon']:
+            if font == _font('icon'):
                 draw.text((x, y + 10), char, fill=text_color, font=font, embedded_color=True)
             else:
                 draw.text((x, y), char, fill=color, font=font, embedded_color=True)
