@@ -110,11 +110,6 @@ class Config(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     bot_token: Mapped[str]
-    address: Mapped[str]
-    port: Mapped[str]
-    max_login_attempts: Mapped[int]
-    login_failed_timeout: Mapped[int]  # in seconds
-    login_session_time: Mapped[int]  # in seconds
     last_used: Mapped[datetime] = mapped_column(Timestamp, default=datetime.fromtimestamp(0, tz=timezone.utc))
     last_quote_id: Mapped[int] = mapped_column(ForeignKey('quote.id'), nullable=True)
 
