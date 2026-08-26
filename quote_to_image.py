@@ -12,12 +12,12 @@ IMAGE_PATH = Path(__file__).parent / "text_image.png"
 ASSETS = Path(__file__).parent / "assets"
 FONTS = {
     "base": ["Jaini-Regular.ttf", 36,
-        'https://github.com/EkType/Jaini/raw/refs/heads/master/fonts/ttf/Jaini-Regular.ttf',
-        '67224e60cafa27291c4b03cd907ca61ec678ba59fc1743af89da4472ea50d5c7'
+             'https://github.com/EkType/Jaini/raw/32a286f/fonts/ttf/Jaini-Regular.ttf',
+             '67224e60cafa27291c4b03cd907ca61ec678ba59fc1743af89da4472ea50d5c7'
     ],
-    "icon": ["NotoColorEmoji.ttf", 109,
-        'https://github.com/googlefonts/noto-emoji/raw/main/fonts/NotoColorEmoji.ttf',
-        '72a635cb3d2f3524c51620cdde406b217204e8a6a06c6a096ff8ed4b5fd6e27b'
+    "icon": ["seguiemj.ttf", 36,
+             'https://github.com/mrbvrz/segoe-ui-linux/raw/2c51d60/font/seguiemj.ttf',
+             '7c0244dd8eeb7c6bdecdfc3f9e59833527fc18a66d0295ce47339069692a2b4f'
     ],
 }
 

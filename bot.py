@@ -120,10 +120,6 @@ def ensure_fonts() -> None:
         tmp.write_bytes(data)
         tmp.replace(dst)
 
-    tables = set(TTFont(ASSETS / FONTS["icon"][0]).keys())
-    if "CBDT" not in tables:
-        raise SystemExit(f"emoji font is not CBDT (found {tables & {'COLR', 'SVG '}}) — Pillow cannot render it")
-
 
 def main() -> None:
     load_dotenv()
