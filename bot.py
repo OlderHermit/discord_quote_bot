@@ -4,7 +4,6 @@ import logging
 import os
 import urllib
 
-
 import context
 import discord
 from aiohttp.web_runner import AppRunner
@@ -13,7 +12,6 @@ from discord.ext import commands
 from dotenv import load_dotenv
 from quote_to_image import render_quote_image, generate_daily_image, IMAGE_PATH, ASSETS, FONTS
 from web import start_server
-from fontTools.ttLib import TTFont
 
 log = logging.getLogger(__name__)
 
@@ -125,7 +123,7 @@ def main() -> None:
     load_dotenv()
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
 
-    missing = [k for k in ("SECRET_KEY", "USER_PASS", "MASTER_PASS", "LOCAL_ADDRESS", "LOCAL_PORT", "SITE_URL")
+    missing = [k for k in ("SECRET_KEY", "USER_PASS", "MASTER_PASS", "LOCAL_ADDRESS", "LOCAL_PORT", "SITE_URL", "BOT_TOKEN")
                if not os.getenv(k)]
     if missing:
         raise SystemExit(f"missing env vars: {', '.join(missing)}")
@@ -138,7 +136,7 @@ def main() -> None:
         logging.exception("failed to start DB")
         raise SystemExit(1)
 
-    bot.run(context.db.get_config().bot_token, log_handler=None)
+    bot.run(os.getenv("BOT_TOKEN"), log_handler=None)
 
 
 if __name__ == '__main__':

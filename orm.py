@@ -109,9 +109,8 @@ class Config(Base):
     __tablename__ = 'config'
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    bot_token: Mapped[str]
     last_used: Mapped[datetime] = mapped_column(Timestamp, default=datetime.fromtimestamp(0, tz=timezone.utc))
     last_quote_id: Mapped[int] = mapped_column(ForeignKey('quote.id'), nullable=True)
 
     def __repr__(self) -> str:
-        return f'Config(id={self.id}, token=secret last 5 characters{self.bot_token[-5:]}, adress={self.address}:{self.port}, last_used={self.last_used}'
+        return f'Config(id={self.id}, last_used={self.last_used}, last_quote_id={self.last_quote_id})'
