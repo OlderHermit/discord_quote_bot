@@ -14,9 +14,12 @@
     color: #9b2c2c;
 }
 
+/* Flat parchment card, no texture layer - same recipe as Home's .previewContainer
+   (same border-brown border, #f3e7cb background, shadow), just scoped locally
+   here since it's Approve-specific markup. A tiled texture behind a list of
+   variable-height cards kept aliasing into noise depending on card height, and
+   a flat card reads calmer for a moderation queue anyway. */
 .column_approve {
-    position: relative;
-    z-index: 2;
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -26,41 +29,10 @@
     border: 2px solid var(--border-brown, #573c22);
     transition: 0.3s;
     margin: 1em auto;
-    padding: 22px 26px;
+    padding: 24px;
     width: min(90vw, 25em);
     box-sizing: border-box;
-    overflow: hidden;
     background-color: #f3e7cb;          /* warm parchment, matches Home preview */
-}
-
-.column_approve::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    z-index: 0;
-    /* Tiled ambient grain only - no illustrated background art here (unlike
-       Home/Login's single hero card), since repeating that same illustration
-       behind every stacked nomination would read as duplicated wallpaper. */
-    background-image: url('/quote_texture.jpeg');
-    /* Fixed tile size, not `cover` - `cover` sizes the image relative to each
-       card's own box, and cards vary in height (sentence count, explanation
-       or not). That made short cards downscale the texture hard to "cover"
-       their small box, and heavy downscaling of this much fine grain detail
-       aliased into visible noise - worst on the shortest cards, invisible on
-       whichever card happened to be tallest. A fixed size tiles the same
-       texture at the same scale on every card regardless of height. */
-    background-size: 240px auto;
-    background-position: center;
-    background-repeat: repeat;
-    background-blend-mode: multiply;
-    filter: brightness(150%);
-    border-radius: 8px;
-}
-
-/* Keep all real content above the texture layer */
-.column_approve > * {
-    position: relative;
-    z-index: 1;
 }
 
 .lines {
