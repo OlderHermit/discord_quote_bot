@@ -123,8 +123,8 @@ def main() -> None:
     load_dotenv()
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
 
-    missing = [k for k in ("SECRET_KEY", "USER_PASS", "MASTER_PASS", "LOCAL_ADDRESS", "LOCAL_PORT", "SITE_URL", "BOT_TOKEN")
-               if not os.getenv(k)]
+    missing = [k for k in ("BOT_TOKEN", "SECRET_KEY", "USER_PASS", "MASTER_PASS", "LOCAL_ADDRESS", "LOCAL_PORT", "SITE_URL")
+               if not os.getenv(k, "").strip()]
     if missing:
         raise SystemExit(f"missing env vars: {', '.join(missing)}")
 
