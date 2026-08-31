@@ -21,6 +21,15 @@ file, mostly because I wanted an excuse to poke at a few technologies I hadn't u
   - Quote management (approving/discarding nominations, role gated with `user`/`master` login)
 - Self creating SQLite database, no manual setup required
 
+## System requirements
+
+The project was built to run comfortably on small/SBC-class
+hardware, RISC-V included. On the board it's actually deployed on: Python + nginx sit
+around 100MB of memory combined, the Python process spikes to about 4% CPU while
+generating a quote image and idles near zero otherwise, and the whole thing (bot + venv
++ built front + all dependencies) takes up roughly 220MB of disk. Nothing exotic here,
+should run fine on anything from a Raspberry Pi upward.
+
 ## Screenshots
 
 Adding a new quote:
@@ -68,6 +77,21 @@ you there, just expect to rename/translate a few strings to your own taste.
    source .venv/bin/activate
    pip install -r requirements.txt
    ```
+   Pillow ships prebuilt wheels for most common platforms, so this step usually just
+   works with no extra prep. If your platform doesn't have one (RISC-V being the case
+   that got me), pip falls back to compiling Pillow from source, which needs its image
+   codec libraries installed on the system first, e.g.:
+   ```
+   # Debian/Ubuntu
+   sudo apt install libjpeg-dev zlib1g-dev libfreetype6-dev liblcms2-dev libopenjp2-7-dev libtiff5-dev libwebp-dev
+
+   # Fedora
+   sudo dnf install libjpeg-turbo-devel zlib-devel freetype-devel lcms2-devel openjpeg2-devel libtiff-devel libwebp-devel
+
+   # Arch
+   sudo pacman -S libjpeg-turbo zlib freetype2 lcms2 openjpeg2 libtiff libwebp
+   ```
+   Package names can drift a bit between distro versions, but if `pip install` dies specifically on the Pillow line, this is almost certainly why - see [Pillow's own install docs](https://pillow.readthedocs.io/en/stable/installation/building-from-source.html) if the above doesn't cover it.
 3. Create a `.env` file in the project root with the following (see [Environment variables](#environment-variables) below):
    ```
    BOT_TOKEN=
