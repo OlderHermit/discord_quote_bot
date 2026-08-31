@@ -1,3 +1,19 @@
+.shell {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.5rem;
+    width: 100%;
+}
+
+.statusError {
+    font-family: 'Georgia', serif;
+    font-style: italic;
+    color: #9b2c2c;
+}
+
 .column_approve {
     position: relative;
     z-index: 2;
@@ -22,12 +38,15 @@
     position: absolute;
     inset: 0;
     z-index: 0;
-    background-image: url('/quote_texture.png');
-    background-size: 150%;
+    /* Tiled ambient grain only - no illustrated background art here (unlike
+       Home/Login's single hero card), since repeating that same illustration
+       behind every stacked nomination would read as duplicated wallpaper. */
+    background-image: url('/quote_texture.jpeg');
+    background-size: cover;
     background-position: center;
-    background-repeat: no-repeat;
+    background-repeat: repeat;
     background-blend-mode: multiply;
-    opacity: 0.4;                       /* subtle texture, no harsh brightness */
+    filter: brightness(150%);
     border-radius: 8px;
 }
 
@@ -71,4 +90,39 @@
 .button {
     flex: 0 0 auto;
     min-width: 100px;
+}
+
+/* Accept/Discard need to beat globals.css's `button, input[type="button"], ...`
+   rule (specificity 0,1,1), so these combine the attribute selector with the
+   class rather than using a bare class alone. */
+
+/* Accept - an intensified version of the app's own gold/gilt gradient, reading
+   as "the sanctioned action" rather than an unrelated bootstrap green. */
+input[type="button"].acceptButton {
+    background: linear-gradient(to bottom, #e8c874, #c9a227);
+    border-color: #8a6a1f;
+}
+input[type="button"].acceptButton:hover,
+input[type="button"].acceptButton:focus {
+    background: linear-gradient(to bottom, #f0d68a, #d4ac35);
+    border-color: #a5801f;
+}
+input[type="button"].acceptButton:active {
+    background: #b8901f;
+}
+
+/* Discard - muted oxblood/rust, staying in the manuscript's warm/earthy
+   register instead of a generic danger-red. */
+input[type="button"].discardButton {
+    background: linear-gradient(to bottom, #9c5a45, #7a3b2e);
+    border-color: #4a2318;
+    color: var(--parchment);   /* dark ink would be low-contrast here */
+}
+input[type="button"].discardButton:hover,
+input[type="button"].discardButton:focus {
+    background: linear-gradient(to bottom, #b06b54, #8a4636);
+    border-color: #5c2c1f;
+}
+input[type="button"].discardButton:active {
+    background: #6b2f22;
 }

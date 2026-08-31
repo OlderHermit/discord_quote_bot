@@ -34,7 +34,7 @@ export default function QuotesPage() {
 
                 if (!res.ok) {
                     const body = await res.json().catch(() => null);
-                    alert(`Couldn't delete quote: ${body?.message ?? 'no message provided'}`);
+                    alert(`Couldn't load quotes: ${body?.message ?? 'no message provided'}`);
                     return;
                 }
 
@@ -86,42 +86,56 @@ export default function QuotesPage() {
         removeQuote(id)
     }
 
-    if (loading) return <p>Loading quotes...</p>;
-    if (error) return <p>Error: {error}</p>;
-    if (!quotes || quotes.length === 0) return <p>No quotes found.</p>;
-
     return (
-        <div>
+        <div className="page">
             <RuneBackground/>
-            <div>
-                {quotes.map((q) => (
-                    <div key={q.id} className={`${styles.column_approve}`}>
-                        <div className={styles.lines}>
-                            {q.sentences.map((sentence, i) => (
-                                <p key={i} className={styles.text_approve}>
-                                    {sentence.author_id + ': ' + sentence.sentence}
-                                </p>
-                            ))}
-                            {q.explanation && (
-                                <p className={styles.explanation}>{q.explanation}</p>
-                            )}
-                        </div>
-                        <div className={styles.actions}>
-                            <input
-                                type='button'
-                                className={styles.button}
-                                onClick={() => approveQuote(q.id)}
-                                value='Accept'
-                            />
-                            <input
-                                type='button'
-                                className={styles.button}
-                                onClick={() => discardQuote(q.id)}
-                                value='Discard'
-                            />
-                        </div>
+            <div className={styles.shell}>
+                <h1 className="cardTitle">Approve Nominations</h1>
+
+                {!loading && !error && (
+                    <p className="previewEmpty">
+                        {quotes.length} nomination{quotes.length === 1 ? '' : 's'} pending
+                    </p>
+                )}
+
+                {loading ? (
+                    <p className="previewEmpty">Loading nominations…</p>
+                ) : error ? (
+                    <p className={styles.statusError}>Error: {error}</p>
+                ) : quotes.length === 0 ? (
+                    <p className="previewEmpty">No nominations waiting.</p>
+                ) : (
+                    <div className="layout">
+                        {quotes.map((q) => (
+                            <div key={q.id} className={styles.column_approve}>
+                                <div className={styles.lines}>
+                                    {q.sentences.map((sentence, i) => (
+                                        <p key={i} className={styles.text_approve}>
+                                            {sentence.author_id + ': ' + sentence.sentence}
+                                        </p>
+                                    ))}
+                                    {q.explanation && (
+                                        <p className={styles.explanation}>{q.explanation}</p>
+                                    )}
+                                </div>
+                                <div className={styles.actions}>
+                                    <input
+                                        type='button'
+                                        className={`${styles.button} ${styles.acceptButton}`}
+                                        onClick={() => approveQuote(q.id)}
+                                        value='Accept'
+                                    />
+                                    <input
+                                        type='button'
+                                        className={`${styles.button} ${styles.discardButton}`}
+                                        onClick={() => discardQuote(q.id)}
+                                        value='Discard'
+                                    />
+                                </div>
+                            </div>
+                        ))}
                     </div>
-                ))}
+                )}
             </div>
         </div>
     );

@@ -38,7 +38,7 @@ export const Login = () => {
         <div>
             <RuneBackground />
             <div
-                className="contentContainer" style={{ paddingTop: "30px" }}
+                className="contentContainer"
             >
                 <h2>Login</h2>
                 <input
