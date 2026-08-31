@@ -177,3 +177,9 @@ nohup.out
 #droping jsons
 /jsons/
 /jsons/
+
+# the actual quote database - real content, never belongs in the repo
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
