@@ -42,7 +42,14 @@
        Home/Login's single hero card), since repeating that same illustration
        behind every stacked nomination would read as duplicated wallpaper. */
     background-image: url('/quote_texture.jpeg');
-    background-size: cover;
+    /* Fixed tile size, not `cover` - `cover` sizes the image relative to each
+       card's own box, and cards vary in height (sentence count, explanation
+       or not). That made short cards downscale the texture hard to "cover"
+       their small box, and heavy downscaling of this much fine grain detail
+       aliased into visible noise - worst on the shortest cards, invisible on
+       whichever card happened to be tallest. A fixed size tiles the same
+       texture at the same scale on every card regardless of height. */
+    background-size: 240px auto;
     background-position: center;
     background-repeat: repeat;
     background-blend-mode: multiply;
