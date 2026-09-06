@@ -11,7 +11,7 @@ from sqlalchemy.exc import IntegrityError
 
 import context
 
-async def start_server() -> web.AppRunner:
+async def create_app() -> web.Application:
     app = web.Application()
 
     app.add_routes([
@@ -36,6 +36,12 @@ async def start_server() -> web.AppRunner:
 
     for route in list(app.router.routes()):
         cors.add(route)
+
+    return app
+
+
+async def start_server() -> web.AppRunner:
+    app = await create_app()
 
     runner = web.AppRunner(app)
     await runner.setup()
