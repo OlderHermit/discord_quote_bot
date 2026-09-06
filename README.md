@@ -35,6 +35,10 @@ Adding a new quote:
 
 ![Add quote screen](docs/screenshots/add-quote.gif)
 
+Requesting quote on discord
+
+![Request quote](docs/screenshots/discord-interaction.gif)
+
 ## TODO List
 
 - ~~Make database self creatable without prerequisites~~
