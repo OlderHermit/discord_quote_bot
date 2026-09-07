@@ -1,15 +1,26 @@
-import pathlib, pytest
-from  PIL import Image, ImageChops
+import pathlib
 
+import pytest
 from dotenv import load_dotenv
+from PIL import Image, ImageChops
 from sqlalchemy.orm import Session
 
 from db_bridge import DBBridge
-from orm import Config, Color, Author, Sentence, Quote
+from orm import Author, Color, Config, Quote, Sentence
 
 BASE = pathlib.Path(__file__).parent / "baseline"
 OUT = pathlib.Path(__file__).parent / "output"
 
+DEFAULTS = {
+    "SECRET_KEY": "test-signing-key",
+    "USER_PASS": "pass",
+    "MASTER_PASS": "pass_master",
+}
+
+@pytest.fixture(autouse=True)
+def env(monkeypatch, tmp_path):
+    for key, value in DEFAULTS.items():
+        monkeypatch.setenv(key, value)
 
 @pytest.fixture
 def test_bridge(tmp_path):
@@ -56,7 +67,10 @@ def test_bridge(tmp_path):
                     number=0,
                     author=author2,
                     quote=single_author_long,
-                    sentence="Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamc"
+                    sentence="""
+                    Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore
+                     et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamc
+                    """
                 ),
                 Sentence(
                     number=0,
