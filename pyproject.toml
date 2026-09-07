@@ -2,6 +2,7 @@
 pythonpath = ["."]
 testpaths = ["tests"]
 addopts = "-ra --strict-markers --strict-config"
+asyncio_mode = auto
 
 [tool.ruff]
 line-length = 120
