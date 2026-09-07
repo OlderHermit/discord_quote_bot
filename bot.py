@@ -34,7 +34,7 @@ class QuoteBot(commands.Bot):
             await self.runner.cleanup()
         await super().close()
 
-context.QuoteBot = bot = QuoteBot()
+context.bot = bot = QuoteBot()
 
 
 @bot.event
