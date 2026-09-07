@@ -3,6 +3,7 @@ import datetime
 import json
 import os
 import secrets
+import subprocess
 
 import aiohttp_cors
 import jwt
@@ -12,8 +13,20 @@ from sqlalchemy.exc import IntegrityError
 import context
 
 
+def _current_commit() -> str | None:
+    try:
+        return subprocess.run(
+            ["git", "rev-parse", "HEAD"],
+            cwd=os.path.dirname(os.path.abspath(__file__)),
+            capture_output=True, text=True, check=True,
+        ).stdout.strip()
+    except Exception:
+        return None
+
+
 async def create_app() -> web.Application:
     app = web.Application()
+    app["commit"] = _current_commit()
 
     app.add_routes([
         web.post('/quotes', submit_through_web),
@@ -57,7 +70,7 @@ def public(handler):
     return handler
 
 @public
-async def health(_):
+async def health(request):
     bot = context.bot
     checks = {}
 
@@ -81,6 +94,7 @@ async def health(_):
             "status": "ok" if healthy else "degraded",
             "checks": checks,
             "latency_ms": round(bot.latency * 1000) if bot.is_ready() else None,
+            "commit": request.app["commit"],
         },
         status=200 if healthy else 503,
     )
