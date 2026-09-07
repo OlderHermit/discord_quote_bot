@@ -1,0 +1,116 @@
+name: CI/CD
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# Cancel superseded PR runs, but never cancel a run that might be mid-deploy.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  backend:
+    name: Lint & test (Python)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: |
+            requirements.txt
+            requirements-dev.txt
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt -r requirements-dev.txt
+
+      - name: Ruff
+        # --output-format=github turns lint errors into inline PR annotations
+        run: ruff check --output-format=github .
+
+      - name: Pytest
+        run: pytest -q
+
+  frontend:
+    name: Build front (React)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: front
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: front/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        run: npm run build
+
+      - name: Package dist
+        run: tar -czf ../front-dist.tar.gz -C dist .
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: front-dist
+          path: front-dist.tar.gz
+          retention-days: 7
+
+  deploy:
+    name: Deploy to board
+    needs: [backend, frontend]
+    # Pinned to this repository so forks skip it entirely.
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+
+    environment: production
+    concurrency:
+      group: deploy-prod
+      cancel-in-progress: false
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: front-dist
+
+      - name: Connect to tailnet
+        uses: tailscale/github-action@v4
+        with:
+          oauth-client-id: ${{ secrets.TS_OAUTH_CLIENT_ID }}
+          oauth-secret: ${{ secrets.TS_OAUTH_SECRET }}
+          tags: tag:ci
+          # Fail fast if the board isn't visible yet rather than hanging on scp.
+          ping: ${{ secrets.DEPLOY_HOST }}
+
+      - name: Ship build and deploy
+        env:
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_USER: ${{ vars.DEPLOY_USER }}
+          TARGET_SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          TARGET="${DEPLOY_USER}@${DEPLOY_HOST}"
+
+          scp -o StrictHostKeyChecking=accept-new \
+            front-dist.tar.gz "${TARGET}:staging/front-dist.tar.gz"
+
+          # deploy.sh health-checks and rolls itself back; a non-zero exit
+          ssh -o StrictHostKeyChecking=accept-new "${TARGET}" \
+            "/opt/discord_quote_bot/deploy/deploy.sh '${TARGET_SHA}' staging/front-dist.tar.gz"
