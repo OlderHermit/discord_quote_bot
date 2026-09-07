@@ -125,7 +125,7 @@ def prepare_dialogue(quote: Quote, max_width: int):
     return centered
 
 
-@functools.lru_cache(maxsize=None)
+@functools.cache
 def _font(tag: str) -> ImageFont.FreeTypeFont:
     name, size, _, _ = FONTS[tag]
     return ImageFont.truetype(str(ASSETS / name), size)
@@ -148,7 +148,7 @@ def _generate_image_for_quote(quote: Quote):
         if j >= len(centered) - len(quote.get_authors()):
             y -= 10
 
-        for i, char in enumerate(line):
+        for char in line:
             font = _font('icon') if ord(char) > 512 else _font('base')
             if char == ':':
                 color = default_font_color

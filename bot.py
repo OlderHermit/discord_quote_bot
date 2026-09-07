@@ -4,13 +4,14 @@ import logging
 import os
 import urllib
 
-import context
 import discord
 from aiohttp.web_runner import AppRunner
-from db_bridge import DBBridge
 from discord.ext import commands
 from dotenv import load_dotenv
-from quote_to_image import render_quote_image, generate_daily_image, IMAGE_PATH, ASSETS, FONTS
+
+import context
+from db_bridge import DBBridge
+from quote_to_image import ASSETS, FONTS, IMAGE_PATH, generate_daily_image, render_quote_image
 from web import start_server
 
 log = logging.getLogger(__name__)
@@ -50,7 +51,7 @@ async def quote(interaction: discord.Interaction) -> None:
             asyncio.to_thread(_prepare_quote_image),
             timeout=30,
         )
-    except asyncio.TimeoutError:
+    except TimeoutError:
         await interaction.followup.send(
             '⏳ The image generation timed out in theory impossible???'
         )
@@ -83,8 +84,8 @@ async def explain(interactions):
 @bot.tree.command(name='submit', description='Możliwość dodania własnego cytatu')
 async def submit(interactions):
     await interactions.response.send_message(
-        f'Password: "{os.getenv('USER_PASS')}"\nFunctionality moved to here https://{os.getenv("SITE_URL")}', ephemeral=True,
-        delete_after=60
+        f'Password: "{os.getenv('USER_PASS')}"\nFunctionality moved to here https://{os.getenv("SITE_URL")}',
+        ephemeral=True, delete_after=60
     )
 
 def _prepare_quote_image() -> None:
@@ -123,8 +124,8 @@ def main() -> None:
     load_dotenv()
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
 
-    missing = [k for k in ("BOT_TOKEN", "SECRET_KEY", "USER_PASS", "MASTER_PASS", "LOCAL_ADDRESS", "LOCAL_PORT", "SITE_URL")
-               if not os.getenv(k, "").strip()]
+    envs = ("BOT_TOKEN", "SECRET_KEY", "USER_PASS", "MASTER_PASS", "LOCAL_ADDRESS", "LOCAL_PORT", "SITE_URL")
+    missing = [k for k in envs if not os.getenv(k, "").strip()]
     if missing:
         raise SystemExit(f"missing env vars: {', '.join(missing)}")
 
@@ -132,9 +133,9 @@ def main() -> None:
 
     try:
         context.db = DBBridge(os.getenv("DB_PATH", "quotes.db"))
-    except Exception:
+    except Exception as err:
         logging.exception("failed to start DB")
-        raise SystemExit(1)
+        raise SystemExit(1) from err
 
     bot.run(os.getenv("BOT_TOKEN"), log_handler=None)
 

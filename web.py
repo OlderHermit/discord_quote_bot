@@ -11,6 +11,7 @@ from sqlalchemy.exc import IntegrityError
 
 import context
 
+
 async def create_app() -> web.Application:
     app = web.Application()
 

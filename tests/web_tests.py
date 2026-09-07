@@ -7,7 +7,6 @@ from sqlalchemy.orm import Session
 
 import context
 from orm import Quote
-from tests.conftest import test_bridge
 from web import create_app
 
 
@@ -18,7 +17,9 @@ async def client(test_bridge, aiohttp_client):
     return await aiohttp_client(app)
 
 async def _login(client, role = 'user'):
-    resp = await client.post('/login', json = {"password": os.getenv('USER_PASS') if role == 'user' else os.getenv('MASTER_PASS')})
+    resp = await client.post(
+        '/login', json = {"password": os.getenv('USER_PASS') if role == 'user' else os.getenv('MASTER_PASS')}
+    )
 
     return resp.cookies.get('token').value
 
