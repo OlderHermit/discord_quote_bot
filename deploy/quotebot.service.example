@@ -1,0 +1,33 @@
+[Unit]
+Description=Discord quote bot
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=quotebot
+Group=quotebot
+WorkingDirectory=/opt/discord_quote_bot
+EnvironmentFile=/opt/discord_quote_bot/.env
+ExecStart=/opt/discord_quote_bot/.venv/bin/python bot.py
+
+Restart=on-failure
+RestartSec=5s
+StartLimitIntervalSec=300
+StartLimitBurst=5
+
+; Give the bot time to close its gateway connection cleanly
+KillSignal=SIGINT
+TimeoutStopSec=5
+
+Environment=PYTHONUNBUFFERED=1
+
+; Hardening
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+ProtectHome=read-only
+ReadWritePaths=/opt/discord_quote_bot
+
+[Install]
+WantedBy=multi-user.target
