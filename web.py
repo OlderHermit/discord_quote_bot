@@ -23,6 +23,7 @@ async def create_app() -> web.Application:
         web.get('/authors', return_authors_data),
         web.post('/login', login),
         web.get('/login/check', check_token),
+        web.get('/health', health),
     ])
 
     app.middlewares.append(auth_middleware)
@@ -51,6 +52,38 @@ async def start_server() -> web.AppRunner:
     print("website is on")
     return runner
 
+def public(handler):
+    handler.__public__ = True
+    return handler
+
+@public
+async def health(request):
+    bot = request.app["bot"]
+    checks = {}
+
+    try:
+        context.db.get_config()          # cheapest real query
+        checks["db"] = "ok"
+    except Exception:
+        checks["db"] = "error"
+
+    if bot.is_closed():
+        checks["discord"] = "closed"
+    elif not bot.is_ready():
+        checks["discord"] = "connecting"
+    else:
+        checks["discord"] = "ok"
+
+    healthy = checks["db"] == "ok" and checks["discord"] == "ok"
+
+    return web.json_response(
+        {
+            "status": "ok" if healthy else "degraded",
+            "checks": checks,
+            "latency_ms": round(bot.latency * 1000) if bot.is_ready() else None,
+        },
+        status=200 if healthy else 503,
+    )
 
 async def return_authors_data(_):
     authors = [a.id for a in context.db.get_authors()]
@@ -117,7 +150,7 @@ async def return_nominations_data(_):
         [q.as_dict() for q in await asyncio.to_thread(context.db.get_candidate_quotes)]
     )
 
-
+@public
 async def login(request):
     try:
         data = (await request.json())
@@ -158,7 +191,7 @@ async def check_token(request):
 
 @web.middleware
 async def auth_middleware(request, handler):
-    if request.path == "/login" or request.method == "OPTIONS":
+    if getattr(handler, "__public__", False) or request.method == "OPTIONS":
         return await handler(request)
 
     token = request.cookies.get('token')
