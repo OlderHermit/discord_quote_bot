@@ -58,7 +58,7 @@ def public(handler):
 
 @public
 async def health(request):
-    bot = request.app["bot"]
+    bot = context.bot
     checks = {}
 
     try:
