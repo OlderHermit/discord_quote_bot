@@ -29,13 +29,13 @@ flock -n 9 || die "another deploy is already running"
 
 # --- preflight ---------------------------------------------------------------
 
-cd "$REPO_DIR" || die "no repo at $REPO_DIR"
-[ -x "$VENV/bin/python" ] || die "no virtualenv at $VENV"
-
 if [ -n "$DIST_TARBALL" ]; then
     DIST_TARBALL="$(readlink -f "$DIST_TARBALL")"
     [ -f "$DIST_TARBALL" ] || die "no tarball at $DIST_TARBALL"
 fi
+
+cd "$REPO_DIR" || die "no repo at $REPO_DIR"
+[ -x "$VENV/bin/python" ] || die "no virtualenv at $VENV"
 
 PREV_SHA="$(git rev-parse HEAD)"
 

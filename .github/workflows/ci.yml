@@ -107,10 +107,11 @@ jobs:
         run: |
           set -euo pipefail
           TARGET="${DEPLOY_USER}@${DEPLOY_HOST}"
-
+          REMOTE_TARBALL="/home/${DEPLOY_USER}/staging/front-dist.tar.gz"
+          
           scp -o StrictHostKeyChecking=accept-new \
-            front-dist.tar.gz "${TARGET}:staging/front-dist.tar.gz"
+            front-dist.tar.gz "${TARGET}:${REMOTE_TARBALL}"
 
           # deploy.sh health-checks and rolls itself back; a non-zero exit
-          ssh -o StrictHostKeyChecking=accept-new "${TARGET}" \
-            "/opt/discord_quote_bot/deploy/deploy.sh '${TARGET_SHA}' staging/front-dist.tar.gz"
+          ssh -T -o StrictHostKeyChecking=accept-new "${TARGET}" \
+            "/opt/discord_quote_bot/deploy/deploy.sh '${TARGET_SHA}' '${REMOTE_TARBALL}'" 2>&1
