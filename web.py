@@ -57,7 +57,7 @@ def public(handler):
     return handler
 
 @public
-async def health(request):
+async def health(_):
     bot = context.bot
     checks = {}
 
