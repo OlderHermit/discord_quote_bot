@@ -1,13 +1,13 @@
 import sqlite3
-from contextlib import closing
-from datetime import datetime, timezone
-from pathlib import Path
 from collections.abc import Sequence
+from contextlib import closing
+from datetime import UTC, datetime
+from pathlib import Path
 
-from sqlalchemy import Engine, create_engine, select, update, func, event
-from sqlalchemy.orm import Session, sessionmaker, selectinload
+from sqlalchemy import Engine, create_engine, event, func, select, update
+from sqlalchemy.orm import Session, selectinload, sessionmaker
 
-from orm import Config, Base, Quote, Author, Sentence
+from orm import Author, Base, Config, Quote, Sentence
 
 
 class DatabaseCorrupt(RuntimeError):
@@ -18,7 +18,7 @@ class ValidQuotesMissing(RuntimeError):
 
 
 
-class DBBridge():
+class DBBridge:
 
     def __init__(self, db_path: Path | str = "quotes.db"):
         self.db_path = Path(db_path).resolve()
@@ -53,7 +53,7 @@ class DBBridge():
 
     def is_new_quote_time(self) -> bool:
         last_used = self.get_config().last_used.date()
-        now = datetime.now(timezone.utc).date()
+        now = datetime.now(UTC).date()
         return now > last_used
 
     def update_config_last_used_quote(self, q_id: int) -> None:
@@ -61,7 +61,7 @@ class DBBridge():
             session.execute(
                 update(Config)
                 .where(Config.id == 0)
-                .values(last_used=datetime.now(timezone.utc), last_quote_id=q_id)
+                .values(last_used=datetime.now(UTC), last_quote_id=q_id)
             )
 
     # quotes ===============================================

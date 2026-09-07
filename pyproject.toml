@@ -1,0 +1,12 @@
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]
+addopts = "-ra --strict-markers --strict-config"
+
+[tool.ruff]
+line-length = 120
+target-version = "py312"
+extend-exclude = [".idea", "front"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "B"]

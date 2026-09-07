@@ -1,8 +1,7 @@
-from datetime import datetime, timezone
-from typing import List
+from datetime import UTC, datetime
 
-from sqlalchemy import ForeignKey, String, Table, Column, CheckConstraint, TypeDecorator, Integer, select
-from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship, Session
+from sqlalchemy import CheckConstraint, ForeignKey, Integer, String, TypeDecorator
+from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
 
 class Base(DeclarativeBase):
@@ -20,7 +19,7 @@ class Timestamp(TypeDecorator):
 
     def process_result_value(self, value, dialect):
         if value is not None:
-            return datetime.fromtimestamp(value, tz=timezone.utc)
+            return datetime.fromtimestamp(value, tz=UTC)
         return value
 
 
@@ -70,10 +69,11 @@ class Quote(Base):
     used: Mapped[bool] = mapped_column(default=False)
     deleted: Mapped[bool] = mapped_column(default=False)
 
-    sentences: Mapped[List[Sentence]] = relationship(back_populates='quote')
+    sentences: Mapped[list[Sentence]] = relationship(back_populates='quote')
 
     def __repr__(self) -> str:
-        return f'Quote(id={self.id}, quote={self.sentences}, date={self.date}, explanation={self.explanation}, author={self.get_authors()}'
+        return (f'Quote(id={self.id}, quote={self.sentences}, date={self.date}, explanation={self.explanation}, '
+                f'author={self.get_authors()}')
 
     def as_dict(self):
         data = {c.name: getattr(self, c.name) for c in self.__table__.columns}
@@ -81,7 +81,7 @@ class Quote(Base):
             data['sentences'] = [s.as_dict() for s in self.sentences]
         return data
 
-    def get_authors(self) -> List[Author]:
+    def get_authors(self) -> list[Author]:
         return list({s.author.id: s.author for s in self.sentences if s.author is not None}.values())
 
 
@@ -109,7 +109,7 @@ class Config(Base):
     __tablename__ = 'config'
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    last_used: Mapped[datetime] = mapped_column(Timestamp, default=datetime.fromtimestamp(0, tz=timezone.utc))
+    last_used: Mapped[datetime] = mapped_column(Timestamp, default=datetime.fromtimestamp(0, tz=UTC))
     last_quote_id: Mapped[int] = mapped_column(ForeignKey('quote.id'), nullable=True)
 
     def __repr__(self) -> str:

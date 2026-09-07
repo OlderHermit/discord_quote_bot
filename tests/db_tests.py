@@ -2,6 +2,7 @@ from sqlalchemy.orm import Session
 
 from orm import Quote
 
+
 def test_add_submission(test_bridge):
     qid = test_bridge.add_submission(
         "2024-01-01", "expl", [("hello", "1"), ("world", "2")]
