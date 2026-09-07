@@ -48,8 +48,11 @@ function measureRunes(fontSpec: string): Record<string, number> {
 
 class BandIndex {
     private readonly cells = new Map<number, Rect[]>();
+    private readonly bandHeight: number;
 
-    constructor(private readonly bandHeight: number) {}
+    constructor(bandHeight: number) {
+        this.bandHeight = bandHeight;
+    }
 
     private firstBand(top: number): number {
         return Math.floor(top / this.bandHeight);
