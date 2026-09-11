@@ -1,5 +1,6 @@
 # Discord Quote Bot
 
+[![CI/CD](https://github.com/OlderHermit/discord_quote_bot/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/OlderHermit/discord_quote_bot/actions/workflows/ci.yml)
 [![License: AGPL v3](https://img.shields.io/badge/License-AGPL_v3-blue.svg)](LICENSE)
 
 ## Introduction
