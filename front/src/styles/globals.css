@@ -388,6 +388,29 @@ select option {
   .iconButton { width: 2.2rem; height: 2.2rem; }
 }
 
+/* =================================================================
+   ATTRIBUTION FOOTER (required by ADDITIONAL_TERMS.md, do not remove)
+   ================================================================= */
+.poweredBy {
+  position: fixed;
+  bottom: 0.4rem;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 3;
+  padding: 0.15rem 0.6rem;
+  border-radius: 4px;
+  background: rgba(245, 236, 217, 0.85);   /* --parchment, slightly see-through */
+  font-family: 'Georgia', serif;
+  font-size: 0.75rem;
+  color: #5a4a36;
+  white-space: nowrap;
+}
+
+.poweredBy a {
+  color: var(--border-brown);
+  font-weight: bold;
+}
+
 @keyframes scrollAnimation {
   0%   { transform: translateX(0%); }
   100% { transform: translateX(400%); }

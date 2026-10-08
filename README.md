@@ -16,6 +16,7 @@ file, mostly because I wanted an excuse to poke at a few technologies I hadn't u
   - `/quote` - generates and posts a "quote of the day" style image
   - `/explain` - gives the "lore" behind the last posted quote
   - `/submit` - points you to the web front to submit your own
+  - `/about` - who made the bot and where to find its source code
 - Auto generated quote images (Pillow) with fonts that download and verify themselves on first run
 - Web front UI (React + Vite)
   - Submitting new quotes
@@ -184,4 +185,8 @@ fully replace nginx here)
 
 ## License
 
+Copyright (C) 2024-2026 Zdzisław Małachowski
+
 GNU AGPL v3.0, see [LICENSE](LICENSE). You can use, modify and self-host it freely, but if you run a modified version as a service, you have to share its source code under the same license.
+
+Additional terms under section 7(b) of the AGPL apply, see [ADDITIONAL_TERMS.md](ADDITIONAL_TERMS.md): the "Powered by" attribution in the web front footer and in the `/about` command must be kept in any version you run or distribute.

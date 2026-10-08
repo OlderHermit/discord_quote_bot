@@ -88,6 +88,20 @@ async def submit(interactions):
         ephemeral=True, delete_after=60
     )
 
+# Author attribution required by the additional terms in ADDITIONAL_TERMS.md
+# (GNU AGPL v3.0, section 7(b)). Do not remove this command or its message.
+SOURCE_URL = 'https://github.com/OlderHermit/discord_quote_bot'
+
+
+@bot.tree.command(name='about', description='Informacje o bocie i jego kodzie źródłowym')
+async def about(interactions):
+    await interactions.response.send_message(
+        f'Powered by **discord_quote_bot** by OlderHermit\n'
+        f'Licensed under GNU AGPL v3.0, source code: <{SOURCE_URL}>',
+        ephemeral=True
+    )
+
+
 def _prepare_quote_image() -> None:
     if context.db.is_new_quote_time():
         q_id = generate_daily_image()

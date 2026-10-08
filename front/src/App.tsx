@@ -3,6 +3,7 @@ import { ProtectedRoute } from './components/ProtectedRoute';
 import Home from './pages/Home';
 import Login from './pages/Login';
 import Approve from './pages/Approve';
+import PoweredBy from './components/PoweredBy';
 import './styles/globals.css';
 
 function App() {
@@ -29,6 +30,7 @@ function App() {
                     }
                 />
             </Routes>
+            <PoweredBy />
         </BrowserRouter>
     );
 }
